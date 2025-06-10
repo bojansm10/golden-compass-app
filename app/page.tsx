@@ -428,6 +428,11 @@ const AddTradeForm = ({
     customInstructor: ''
   });
   
+  // Helper function to get user ID consistently
+  const getUserId = (user: any) => {
+    return user?.id || user?.user?.id;
+  };
+  
   // Pip value mapping for different instruments
   const getPipValue = (instrument: string, lotSize: number) => {
     const pipValues: Record<string, number> = {
@@ -476,8 +481,14 @@ const AddTradeForm = ({
       }
     }
     
+    const userId = getUserId(user);
+    if (!userId) {
+      alert('User ID not found!');
+      return;
+    }
+    
     const newTrade = {
-      user_id: user.id,
+      user_id: userId,
       instructor: instructorName,
       instrument: formData.instrument,
       type: formData.type,
@@ -774,16 +785,19 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   const [showQuickSettings, setShowQuickSettings] = useState(false);
   const [showSupportTicket, setShowSupportTicket] = useState(false);
   const [loading, setLoading] = useState(true);
-
-
+  
+  // Helper function to get user ID consistently
+  const getUserId = (user: any) => {
+    return user?.id || user?.user?.id;
+  };
 
   // Load user settings
   useEffect(() => {
     const loadSettings = async () => {
       console.log('User object:', user); // Check what user object contains
-      console.log('User ID:', user?.id || user?.user?.id); // Check both possible paths
+      console.log('User ID:', getUserId(user)); // Check the extracted user ID
       
-      const userId = user?.id || user?.user?.id;
+      const userId = getUserId(user);
       if (!userId) {
         console.error('No user ID found!');
         return;
@@ -822,10 +836,17 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
 
   const loadTrades = async () => {
     try {
+      const userId = getUserId(user);
+      if (!userId) {
+        console.error('No user ID found for loading trades!');
+        setLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('trades')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -837,6 +858,47 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
       console.error('Error loading trades:', error);
     }
     setLoading(false);
+  };
+
+  // Save settings function
+  const saveSettings = async () => {
+    const userId = getUserId(user);
+    if (!userId) {
+      alert('User ID not found!');
+      return;
+    }
+    
+    const valuesToSave = {
+      capital: Number(capital),
+      risk_percent: Number(riskPercent),
+      compounding_percent: Number(compoundingPercent)
+    };
+    
+    console.log('Saving for user:', userId);
+    console.log('Values to save:', valuesToSave);
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(valuesToSave)
+      .eq('id', userId)
+      .select(); // Add .select() to see what was updated
+    
+    if (error) {
+      console.error('Save error:', error);
+      alert('Failed to save settings: ' + error.message);
+    } else {
+      console.log('Save successful:', data);
+      alert('Settings saved successfully!');
+      
+      // Optionally reload settings to confirm they persisted
+      const { data: reloadData } = await supabase
+        .from('profiles')
+        .select('capital, risk_percent, compounding_percent')
+        .eq('id', userId)
+        .single();
+      
+      console.log('Reloaded data after save:', reloadData);
+    }
   };
 
   // Calculate functions
@@ -1073,26 +1135,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               </div>
             </div>
             <button
-              onClick={async () => {
-                console.log('Saving values:', { capital, riskPercent, compoundingPercent });
-                const { data, error } = await supabase
-                  .from('profiles')
-                  .update({
-                    capital: capital,
-                    risk_percent: riskPercent,
-                    compounding_percent: compoundingPercent
-                  })
-                  .eq('id', user.id)
-                  .select();
-                
-                if (error) {
-                  console.error('Save error:', error);
-                  alert('Failed to save settings: ' + error.message);
-                } else {
-                  console.log('Save response:', data);
-                  alert('Settings saved successfully!');
-                }
-              }}
+              onClick={saveSettings}
               className="mt-4 w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white py-2 rounded-lg font-semibold transition-all"
             >
               💾 SAVE ALL SETTINGS
