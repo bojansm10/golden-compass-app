@@ -1074,14 +1074,6 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
             <button
               onClick={async () => {
-                console.log('=== SAVING SETTINGS DEBUG ===');
-                console.log('User ID:', user.id);
-                console.log('Values to save:', {
-                  capital: capital,
-                  risk_percent: riskPercent,
-                  compounding_percent: compoundingPercent
-                });
-                
                 const { error } = await supabase
                   .from('profiles')
                   .update({
@@ -1092,34 +1084,14 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   .eq('id', user.id);
                 
                 if (error) {
-                  console.error('Save error:', error);
                   alert('Failed to save settings: ' + error.message);
                 } else {
-                  console.log('Save successful!');
                   alert('Settings saved successfully!');
                 }
               }}
               className="mt-4 w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white py-2 rounded-lg font-semibold transition-all"
             >
               💾 SAVE ALL SETTINGS
-            </button>
-            
-            {/* Debug button - remove this later */}
-            <button
-              onClick={async () => {
-                console.log('=== CHECKING DATABASE ===');
-                const { data, error } = await supabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('id', user.id)
-                  .single();
-                console.log('Database content:', data);
-                console.log('Database error:', error);
-                alert(`Database capital: ${data?.capital || 'NOT FOUND'}`);
-              }}
-              className="mt-2 w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg font-semibold transition-all"
-            >
-              🔍 CHECK DATABASE (Debug)
             </button>
           </div>
         )}
