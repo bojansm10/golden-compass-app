@@ -768,6 +768,37 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   const [showSupportTicket, setShowSupportTicket] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Save settings to database
+  const saveSettings = async (field: string, value: number) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ [field]: value })
+      .eq('id', user.id);
+    
+    if (error) {
+      console.error('Failed to save:', error);
+    }
+  };
+
+  // Load user settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('capital, risk_percent, compounding_percent')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setCapital(data.capital || 1000);
+        setRiskPercent(data.risk_percent || 5);
+        setCompoundingPercent(data.compounding_percent || 50);
+      }
+    };
+    
+    loadSettings();
+  }, [user]);
+
   // Load trades on mount
   useEffect(() => {
     loadTrades();
@@ -791,7 +822,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
     }
     setLoading(false);
   };
-  
+
   // Calculate functions
   const calculateAvailable = () => {
     let available = capital;
@@ -987,7 +1018,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   <input
                     type="number"
                     value={capital}
-                    onChange={(e) => setCapital(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const newValue = parseFloat(e.target.value) || 0;
+                      setCapital(newValue);
+                      saveSettings('capital', newValue);
+                    }}
                     className="flex-1 bg-black/50 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:border-cyan-500/50 transition-all"
                   />
                 </div>
@@ -998,7 +1033,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   <input
                     type="number"
                     value={riskPercent}
-                    onChange={(e) => setRiskPercent(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const newValue = parseFloat(e.target.value) || 0;
+                      setRiskPercent(newValue);
+                      saveSettings('risk_percent', newValue);
+                    }}
                     className="flex-1 bg-black/50 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:border-yellow-500/50 transition-all"
                     min={1}
                     max={100}
@@ -1014,7 +1053,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   <input
                     type="number"
                     value={compoundingPercent}
-                    onChange={(e) => setCompoundingPercent(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const newValue = parseFloat(e.target.value) || 0;
+                      setCompoundingPercent(newValue);
+                      saveSettings('compounding_percent', newValue);
+                    }}
                     className="flex-1 bg-black/50 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:border-purple-500/50 transition-all"
                     min={0}
                     max={100}
@@ -1381,7 +1424,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   <input
                     type="number"
                     value={capital}
-                    onChange={(e) => setCapital(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const newValue = parseFloat(e.target.value) || 0;
+                      setCapital(newValue);
+                      saveSettings('capital', newValue);
+                    }}
                     className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-white"
                     onBlur={() => setShowCapitalEdit(false)}
                     autoFocus
@@ -1471,7 +1518,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                     <input
                       type="number"
                       value={riskPercent}
-                      onChange={(e) => setRiskPercent(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const newValue = parseFloat(e.target.value) || 0;
+                        setRiskPercent(newValue);
+                        saveSettings('risk_percent', newValue);
+                      }}
                       className="flex-1 bg-black/50 border border-yellow-500/30 rounded-lg px-3 py-2 text-sm text-white"
                       min={1}
                       max={100}
@@ -1543,7 +1594,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   <input
                     type="number"
                     value={compoundingPercent}
-                    onChange={(e) => setCompoundingPercent(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const newValue = parseFloat(e.target.value) || 0;
+                      setCompoundingPercent(newValue);
+                      saveSettings('compounding_percent', newValue);
+                    }}
                     className="w-full bg-black/50 border border-purple-500/30 rounded px-2 py-1 text-xs text-white"
                     min={0}
                     max={100}
