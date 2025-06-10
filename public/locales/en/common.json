@@ -1,0 +1,115 @@
+{
+  "app": {
+    "name": "Golden Compass",
+    "tagline": "Trading Command Center",
+    "description": "Professional trading journal with advanced analytics"
+  },
+  "nav": {
+    "login": "Login",
+    "register": "Get Started",
+    "logout": "Logout",
+    "support": "Support",
+    "quickSettings": "Quick Settings",
+    "backToHome": "← Back to home"
+  },
+  "settings": {
+    "tradingParameters": "Trading Parameters",
+    "tradingCapital": "Trading Capital",
+    "dailyRiskPercent": "Daily Risk %",
+    "compoundingPercent": "Compounding %",
+    "applyChanges": "Apply Changes",
+    "riskProtocol": "Risk Protocol: {{percent}}% Daily",
+    "positionSizing": "Position Sizing: 0.01 lot / $100",
+    "compounding": "Compounding: {{percent}}%"
+  },
+  "stats": {
+    "balance": "Balance",
+    "dailyPnL": "Daily P&L",
+    "weeklyPnL": "Weekly P&L",
+    "monthlyPnL": "Monthly P&L",
+    "winRate": "Win Rate",
+    "profitFactor": "Profit Factor",
+    "averageWin": "Avg Win",
+    "averageLoss": "Avg Loss",
+    "currentStreak": "Current Streak",
+    "maxDrawdown": "Max Drawdown",
+    "totalTrades": "Total Trades",
+    "winners": "Winners",
+    "losers": "Losers"
+  },
+  "trading": {
+    "addNewTrade": "Add New Trade",
+    "yourTrades": "Your Trades",
+    "recentTrades": "Recent Trades",
+    "performance": "Performance",
+    "instructorRankings": "Instructor Rankings",
+    "bestPerformingInstructors": "Best Performing Instructors",
+    "trades": "trades",
+    "win": "win",
+    "pips": "pips",
+    "noTrades": "No trades yet. Start tracking your journey!",
+    "noData": "No data available yet"
+  },
+  "tradeForm": {
+    "title": "Log New Trade",
+    "instructor": "Instructor",
+    "selectInstructor": "Select an instructor...",
+    "symbol": "Symbol",
+    "entryDate": "Entry Date",
+    "exitDate": "Exit Date",
+    "tradeType": "Trade Type",
+    "long": "LONG",
+    "short": "SHORT",
+    "lotSize": "Lot Size",
+    "max": "Max",
+    "entryPrice": "Entry Price",
+    "exitPrice": "Exit Price",
+    "notes": "notes",
+    "pipsGained": "Pips Gained/Lost",
+    "profit": "Profit/Loss",
+    "remainingAllowance": "Remaining daily allowance",
+    "logTrade": "Log Trade",
+    "cancel": "Cancel"
+  },
+  "support": {
+    "title": "Support Ticket",
+    "name": "Name",
+    "yourName": "Your name",
+    "email": "Email",
+    "yourEmail": "your@email.com",
+    "issueType": "Issue Type",
+    "selectIssueType": "Select issue type...",
+    "bugReport": "🐛 Bug Report",
+    "featureRequest": "✨ Feature Request",
+    "generalSupport": "🎧 General Support",
+    "accountIssue": "👤 Account Issue",
+    "dataIssue": "📊 Data/Calculation Issue",
+    "priority": "Priority",
+    "low": "Low",
+    "medium": "Medium", 
+    "high": "High",
+    "subject": "Subject",
+    "subjectPlaceholder": "Brief description of the issue",
+    "description": "Description",
+    "descriptionPlaceholder": "Please provide detailed information about your issue, including steps to reproduce if it's a bug...",
+    "systemInfo": "📋 System Information (automatically included):",
+    "browserInfo": "Browser: Chrome • OS: Unknown • App Version: 1.0",
+    "submitTicket": "Submit Ticket",
+    "successMessage": "Support ticket submitted! We'll get back to you within 24 hours."
+  },
+  "footer": {
+    "disclaimer": "⚠️ DISCLAIMER:",
+    "disclaimerText": "This application is a trading journal tool for educational and record-keeping purposes only. It is NOT financial advice, investment recommendation, or trading guidance. All trading decisions are your own responsibility. Past performance does not guarantee future results. Trading involves substantial risk of loss."
+  },
+  "errors": {
+    "invalidCredentials": "Invalid login credentials",
+    "passwordMismatch": "Passwords do not match",
+    "registrationFailed": "Registration failed",
+    "loginFailed": "Login failed",
+    "somethingWrong": "Something went wrong"
+  },
+  "success": {
+    "registrationSuccess": "Registration successful! Please check your email to verify your account.",
+    "tradeLogged": "Trade logged successfully!"
+  }
+}
