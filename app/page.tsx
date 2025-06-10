@@ -1074,18 +1074,22 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
             <button
               onClick={async () => {
-                const { error } = await supabase
+                console.log('Saving values:', { capital, riskPercent, compoundingPercent });
+                const { data, error } = await supabase
                   .from('profiles')
                   .update({
                     capital: capital,
                     risk_percent: riskPercent,
                     compounding_percent: compoundingPercent
                   })
-                  .eq('id', user.id);
+                  .eq('id', user.id)
+                  .select();
                 
                 if (error) {
+                  console.error('Save error:', error);
                   alert('Failed to save settings: ' + error.message);
                 } else {
+                  console.log('Save response:', data);
                   alert('Settings saved successfully!');
                 }
               }}
