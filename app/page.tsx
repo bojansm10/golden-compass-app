@@ -268,7 +268,14 @@ const RegisterPage = ({ onNavigate, onLogin }: { onNavigate: (page: string) => v
       } else if (data.user) {
         // Create profile
         await supabase.from('profiles').insert([
-          { id: data.user.id, email: formData.email, name: formData.name }
+          { 
+            id: data.user.id, 
+            email: formData.email, 
+            name: formData.name,
+            capital: 1000,
+            risk_percent: 5,
+            compounding_percent: 50
+          }
         ]);
         
         alert('Registration successful! Please check your email to verify your account.');
@@ -470,7 +477,7 @@ const AddTradeForm = ({
     }
     
     const newTrade = {
-      user_id: user.id,
+      user_id: user?.id || user?.user?.id,
       instructor: instructorName,
       instrument: formData.instrument,
       type: formData.type,
@@ -770,29 +777,57 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
 
   // Save settings to database
   const saveSettings = async (field: string, value: number) => {
+    const userId = user?.id || user?.user?.id;
+    if (!userId) {
+      console.error('No user ID found for saving!');
+      return;
+    }
+    
+    console.log('Saving:', field, value, 'for user:', userId);
     const { error } = await supabase
       .from('profiles')
       .update({ [field]: value })
-      .eq('id', user.id);
+      .eq('id', userId);
     
     if (error) {
       console.error('Failed to save:', error);
+    } else {
+      console.log('Saved successfully:', field, value);
     }
   };
 
   // Load user settings
   useEffect(() => {
     const loadSettings = async () => {
-      const { data } = await supabase
+      console.log('User object:', user); // Check what user object contains
+      console.log('User ID:', user?.id || user?.user?.id); // Check both possible paths
+      
+      const userId = user?.id || user?.user?.id;
+      if (!userId) {
+        console.error('No user ID found!');
+        return;
+      }
+      
+      console.log('Loading settings for user:', userId);
+      const { data, error } = await supabase
         .from('profiles')
         .select('capital, risk_percent, compounding_percent')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
       
+      console.log('Loaded data:', data);
+      console.log('Load error:', error);
+      
       if (data) {
-        setCapital(data.capital || 1000);
-        setRiskPercent(data.risk_percent || 5);
-        setCompoundingPercent(data.compounding_percent || 50);
+        // Handle NULL values properly
+        setCapital(data.capital !== null ? Number(data.capital) : 1000);
+        setRiskPercent(data.risk_percent !== null ? Number(data.risk_percent) : 5);
+        setCompoundingPercent(data.compounding_percent !== null ? Number(data.compounding_percent) : 50);
+        console.log('Settings applied:', {
+          capital: data.capital,
+          risk: data.risk_percent,
+          compounding: data.compounding_percent
+        });
       }
     };
     
@@ -806,10 +841,17 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
 
   const loadTrades = async () => {
     try {
+      const userId = user?.id || user?.user?.id;
+      if (!userId) {
+        console.error('No user ID found for loading trades!');
+        setLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('trades')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
