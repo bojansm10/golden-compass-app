@@ -16,7 +16,7 @@ const LandingPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => 
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="p-6">
+        <header className="p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Logo */}
@@ -69,12 +69,12 @@ const LandingPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => 
         </header>
 
         {/* Hero Section */}
-        <main className="px-6 py-20">
+        <main className="px-4 md:px-6 py-10 md:py-20">
           <div className="max-w-6xl mx-auto text-center">
-            <h1 className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-6">
               Master Your Trading Journey
             </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-4 md:px-0">
               Professional trading journal with advanced analytics, risk management, and real-time performance monitoring. Navigate your path to consistent profitability.
             </p>
             <button 
@@ -87,8 +87,8 @@ const LandingPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => 
           </div>
 
           {/* Features Grid */}
-          <div className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl p-8 border border-gray-800">
+          <div className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 px-4 md:px-0">
+            <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-gray-800">
               <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center mb-6">
                 <BarChart3 size={32} className="text-cyan-400" />
               </div>
@@ -149,13 +149,12 @@ const LoginPage = ({ onNavigate, onLogin }: { onNavigate: (page: string) => void
   return (
     <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
       {/* Background */}
-      <div className="fixed inset-0 opacity-40">
+      <div className="fixed inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-black to-purple-900"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-full filter blur-[200px] animate-pulse"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md p-6">
-        <div className="bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 border border-cyan-500/20">
+      <div className="relative z-10 w-full max-w-md p-4 md:p-6">
+        <div className="bg-gray-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-cyan-500/20">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
               Welcome Back
@@ -289,13 +288,12 @@ const RegisterPage = ({ onNavigate, onLogin }: { onNavigate: (page: string) => v
   return (
     <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
       {/* Background */}
-      <div className="fixed inset-0 opacity-40">
+      <div className="fixed inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-black to-purple-900"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-[200px] animate-pulse"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md p-6">
-        <div className="bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 border border-cyan-500/20">
+      <div className="relative z-10 w-full max-w-md p-4 md:p-6">
+        <div className="bg-gray-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-cyan-500/20">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
               Join Golden Compass
@@ -527,8 +525,8 @@ const AddTradeForm = ({
   if (!showAddTrade) return null;
   
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-gray-900/95 to-black/95 border border-cyan-500/20 rounded-3xl p-8 w-full max-w-md shadow-2xl shadow-cyan-500/10">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-gray-900/95 to-black/95 border border-cyan-500/20 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl shadow-cyan-500/10 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
             New Trade Entry
@@ -990,11 +988,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-black to-purple-900"></div>
       </div>
       
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 p-3 md:p-6">
         {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
+        <header className="mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3 md:gap-4">
               {/* Logo */}
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl blur-lg opacity-50"></div>
@@ -1024,45 +1022,45 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               </div>
               
               <div>
-                <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-1">
+                <h1 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-1">
                   Golden Compass
                 </h1>
-                <h2 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-500 mb-2">
+                <h2 className="text-sm md:text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-500 mb-1 md:mb-2">
                   Trading Command Center
                 </h2>
-                <p className="text-gray-400 flex items-center gap-2">
-                  <Brain size={16} className="text-cyan-400" />
+                <p className="text-gray-400 flex items-center gap-2 text-xs md:text-base">
+                  <Brain size={14} className="text-cyan-400 md:w-4 md:h-4" />
                   Welcome back, {user.user_metadata?.name || user.email}
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="w-full md:w-auto md:text-right">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <button
                   onClick={() => setShowQuickSettings(!showQuickSettings)}
-                  className="flex items-center gap-2 text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all"
+                  className="flex items-center gap-1 md:gap-2 text-xs px-2 md:px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all"
                 >
-                  <Settings size={14} />
-                  Quick Settings
+                  <Settings size={12} className="md:w-3.5 md:h-3.5" />
+                  <span className="hidden sm:inline">Quick</span> Settings
                 </button>
                 <button
                   onClick={() => setShowSupportTicket(true)}
-                  className="flex items-center gap-2 text-xs px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-all"
+                  className="flex items-center gap-1 md:gap-2 text-xs px-2 md:px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded-full text-white transition-all"
                 >
                   <span>🎧</span>
-                  Support
+                  <span className="hidden sm:inline">Support</span>
                 </button>
                 <button
                   onClick={onLogout}
-                  className="flex items-center gap-2 text-xs px-3 py-1 bg-red-600 hover:bg-red-500 rounded-full text-white transition-all"
+                  className="flex items-center gap-1 md:gap-2 text-xs px-2 md:px-3 py-1 bg-red-600 hover:bg-red-500 rounded-full text-white transition-all"
                 >
-                  <LogOut size={14} />
-                  Logout
+                  <LogOut size={12} className="md:w-3.5 md:h-3.5" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-xs md:text-sm text-gray-500 mt-2">
                 <p>Risk Protocol: {riskPercent}% Daily</p>
-                <p>Position Sizing: 0.01 lot / $100</p>
+                <p className="hidden sm:block">Position Sizing: 0.01 lot / $100</p>
                 <p>Compounding: {compoundingPercent}%</p>
               </div>
             </div>
@@ -1071,7 +1069,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         
         {/* Quick Settings Panel */}
         {showQuickSettings && (
-          <div className="mb-6 bg-gray-900/40 backdrop-blur-md rounded-2xl p-4 border border-gray-800">
+          <div className="mb-6 bg-gray-900/40 rounded-2xl p-3 md:p-4 border border-gray-800">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Settings size={16} className="text-cyan-400" />
@@ -1141,11 +1139,11 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         
         {/* Motivational Quote Section */}
         <div className="mb-6 relative overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 rounded-3xl p-8 border border-purple-500/20 text-center">
+          <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 rounded-3xl p-4 md:p-8 border border-purple-500/20 text-center">
             <div className="absolute top-4 left-8 text-6xl text-purple-400/20 font-serif">"</div>
             <div className="absolute bottom-4 right-8 text-6xl text-purple-400/20 font-serif transform rotate-180">"</div>
             <div className="relative z-10">
-              <blockquote className="text-xl md:text-2xl font-serif font-normal text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200 mb-4 leading-relaxed tracking-wide" style={{fontFamily: "'Playfair Display', 'Georgia', serif", fontStyle: 'italic', letterSpacing: '0.02em'}}>
+              <blockquote className="text-base md:text-xl lg:text-2xl font-serif font-normal text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200 mb-4 leading-relaxed tracking-wide" style={{fontFamily: "'Playfair Display', 'Georgia', serif", fontStyle: 'italic', letterSpacing: '0.02em'}}>
                 The market is a device for transferring money from the impatient to the patient. Master your emotions, follow your strategy, and let time be your greatest ally.
               </blockquote>
               <cite className="text-sm text-purple-400/80 font-medium tracking-widest uppercase" style={{fontFamily: "'Inter', sans-serif", letterSpacing: '0.15em'}}>
@@ -1156,7 +1154,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         </div>
         
         {/* Account Health Oscillator */}
-        <div className="mb-6 bg-gray-900/80 rounded-3xl p-6 border border-gray-800 relative overflow-hidden">
+        <div className="mb-6 bg-gray-900/80 rounded-3xl p-4 md:p-6 border border-gray-800 relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -1219,7 +1217,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                 </div>
               </div>
               <div className="text-right">
-                <div className={`text-3xl font-bold ${
+                <div className={`text-2xl md:text-3xl font-bold ${
                   (() => {
                     let healthScore = 0;
                     healthScore += Math.min(stats.winRate * 0.3, 30);
@@ -1465,7 +1463,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         </div>
         
         {/* Main Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {/* Capital Card */}
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
@@ -1483,7 +1481,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                 </button>
               </div>
               <p className="text-sm text-gray-400 mb-2">Starting Capital</p>
-              <p className="text-3xl font-bold text-white">${capital.toLocaleString()}</p>
+              <p className="text-xl md:text-3xl font-bold text-white">${capital.toLocaleString()}</p>
               {showCapitalEdit && (
                 <div className="mt-3">
                   <input
@@ -1513,7 +1511,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                 </span>
               </div>
               <p className="text-sm text-gray-400 mb-2">Available Funds</p>
-              <p className="text-3xl font-bold text-white">${available.toFixed(2)}</p>
+              <p className="text-xl md:text-3xl font-bold text-white">${available.toFixed(2)}</p>
               <div className="mt-3 h-2 bg-black/30 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full transition-all"
@@ -1565,7 +1563,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                 </div>
               </div>
               <p className="text-sm text-gray-400 mb-2">Daily Risk Limit</p>
-              <p className="text-3xl font-bold text-white">${dailyLimit.toFixed(2)}</p>
+              <p className="text-xl md:text-3xl font-bold text-white">${dailyLimit.toFixed(2)}</p>
               <p className={`text-sm mt-2 ${
                 riskUsed > 80 ? 'text-red-400' :
                 riskUsed > 50 ? 'text-orange-400' :
@@ -1618,7 +1616,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                 </span>
               </div>
               <p className="text-sm text-gray-400 mb-2">Win Rate</p>
-              <p className="text-3xl font-bold text-white">{stats.winRate.toFixed(1)}%</p>
+              <p className="text-xl md:text-3xl font-bold text-white">{stats.winRate.toFixed(1)}%</p>
               <div className="mt-3 h-2 bg-black/30 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-emerald-400 to-green-400 rounded-full transition-all"
@@ -1630,7 +1628,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         </div>
         
         {/* Secondary Metrics */}
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
           {/* Saved Amount */}
           <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-4 border border-gray-800 hover:border-purple-500/30 transition-all">
             <div className="flex items-center justify-between mb-2">
@@ -1644,7 +1642,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               </button>
             </div>
             <p className="text-xs text-gray-400 mb-1">Saved</p>
-            <p className="text-xl font-bold text-purple-400">${saved.toFixed(2)}</p>
+            <p className="text-lg md:text-xl font-bold text-purple-400">${saved.toFixed(2)}</p>
             {showCompoundingEdit && (
               <div className="mt-2">
                 <div className="flex items-center gap-1">
@@ -1673,7 +1671,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <span className="text-xs text-gray-500">24H</span>
             </div>
             <p className="text-xs text-gray-400 mb-1">Today P&L</p>
-            <p className={`text-xl font-bold ${todayPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-lg md:text-xl font-bold ${todayPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {todayPL >= 0 ? '+' : ''}${Math.abs(todayPL).toFixed(2)}
             </p>
           </div>
@@ -1685,7 +1683,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <span className="text-xs text-gray-500">ALL</span>
             </div>
             <p className="text-xs text-gray-400 mb-1">Trades</p>
-            <p className="text-xl font-bold text-orange-400">{stats.total}</p>
+            <p className="text-lg md:text-xl font-bold text-orange-400">{stats.total}</p>
           </div>
           
           {/* Total P&L */}
@@ -1695,7 +1693,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <span className="text-xs text-gray-500">ROI</span>
             </div>
             <p className="text-xs text-gray-400 mb-1">Total P&L</p>
-            <p className={`text-xl font-bold ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-lg md:text-xl font-bold ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {totalPL >= 0 ? '+' : ''}${Math.abs(totalPL).toFixed(2)}
             </p>
           </div>
@@ -1707,14 +1705,14 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <span className="text-xs text-gray-500">%</span>
             </div>
             <p className="text-xs text-gray-400 mb-1">Return</p>
-            <p className={`text-xl font-bold ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-lg md:text-xl font-bold ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {capital > 0 ? ((totalPL / capital) * 100).toFixed(1) : '0.0'}%
             </p>
           </div>
         </div>
         
         {/* Critical Market News */}
-        <div className="mb-6 bg-gray-900/60 backdrop-blur-md rounded-2xl p-4 border border-gray-800">
+        <div className="mb-6 bg-gray-900/60 rounded-2xl p-3 md:p-4 border border-gray-800">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
@@ -1747,18 +1745,18 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         {/* Add Trade Button */}
         <button
           onClick={() => setShowAddTrade(true)}
-          className="mb-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 transition-all shadow-lg shadow-cyan-500/20"
+          className="mb-6 w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-4 md:px-6 py-3 rounded-2xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg shadow-cyan-500/20"
         >
           <div className="p-2 bg-white/10 rounded-lg">
-            <Plus size={20} />
+            <Plus size={18} className="md:w-5 md:h-5" />
           </div>
-          New Trade Entry
+          <span className="text-sm md:text-base">New Trade Entry</span>
         </button>
         
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Recent Trades */}
-          <div className="lg:col-span-2 bg-gray-900/60 backdrop-blur-md rounded-3xl border border-gray-800 p-6">
+          <div className="lg:col-span-2 bg-gray-900/60 rounded-3xl border border-gray-800 p-4 md:p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <BarChart3 size={20} className="text-cyan-400" />
@@ -1781,12 +1779,12 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {trades.slice(-10).reverse().map((trade) => (
-                  <div key={trade.id} className="bg-black/40 rounded-2xl p-4 flex justify-between items-center hover:bg-black/60 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-1 h-12 rounded-full ${trade.profit >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
+                  <div key={trade.id} className="bg-black/40 rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-black/60 transition-all gap-2 sm:gap-0">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className={`w-1 h-10 md:h-12 rounded-full ${trade.profit >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-white">{trade.instrument}</p>
+                          <p className="font-semibold text-white text-sm md:text-base">{trade.instrument}</p>
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             trade.type === 'BUY' 
                               ? 'bg-emerald-500/20 text-emerald-400' 
@@ -1801,8 +1799,8 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-bold text-lg ${trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <div className="text-right ml-auto sm:ml-0">
+                      <p className={`font-bold text-base md:text-lg ${trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {trade.profit >= 0 ? '+' : ''}${trade.profit.toFixed(2)}
                       </p>
                       {trade.pips > 0 && (
@@ -1816,7 +1814,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           </div>
           
           {/* Instructor Performance */}
-          <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl border border-gray-800 p-6">
+          <div className="bg-gray-900/60 rounded-3xl border border-gray-800 p-4 md:p-6">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-6">
               <Users size={20} className="text-purple-400" />
               Instructor Analytics
@@ -1829,17 +1827,17 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             ) : (
               <div className="space-y-3">
                 {instructorStats.map((stat, index) => (
-                  <div key={stat.instructor} className="bg-black/40 rounded-2xl p-4 hover:bg-black/60 transition-all">
+                  <div key={stat.instructor} className="bg-black/40 rounded-2xl p-3 md:p-4 hover:bg-black/60 transition-all">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
                           index === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : 'bg-gray-700'
                         }`}>
                           {index + 1}
                         </div>
-                        <p className="font-medium text-white">{stat.instructor}</p>
+                        <p className="font-medium text-white text-sm md:text-base">{stat.instructor}</p>
                       </div>
-                      <p className={`font-bold ${stat.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <p className={`font-bold text-sm md:text-base ${stat.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {stat.profit >= 0 ? '+' : ''}${stat.profit.toFixed(2)}
                       </p>
                     </div>
@@ -1857,8 +1855,8 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
       </div>
       
       {/* Footer */}
-      <footer className="relative z-10 mt-12 px-6 pb-6">
-        <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 border border-gray-800">
+      <footer className="relative z-10 mt-12 px-3 md:px-6 pb-6">
+        <div className="bg-gray-900/60 rounded-2xl p-4 md:p-6 border border-gray-800">
           <div className="text-center space-y-4">
             {/* Legal Disclaimer */}
             <div className="text-xs text-gray-400 max-w-4xl mx-auto leading-relaxed">
@@ -1894,8 +1892,8 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
       
       {/* Support Ticket Modal */}
       {showSupportTicket && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-gray-900/95 to-black/95 border border-blue-500/20 rounded-3xl p-8 w-full max-w-lg shadow-2xl shadow-blue-500/10">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900/95 to-black/95 border border-blue-500/20 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl shadow-blue-500/10 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-500">
                 Support Ticket
