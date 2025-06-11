@@ -9,11 +9,9 @@ import { supabase } from '@/lib/supabase';
 const LandingPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 opacity-40">
+      {/* Simplified Background */}
+      <div className="fixed inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-black to-purple-900"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-full filter blur-[200px] animate-pulse" style={{transform: 'translateZ(0)'}}></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-[200px] animate-pulse" style={{animationDelay: '4s', transform: 'translateZ(0)'}}></div>
       </div>
 
       <div className="relative z-10">
@@ -81,7 +79,7 @@ const LandingPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => 
             </p>
             <button 
               onClick={() => onNavigate('register')}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg flex items-center gap-3 mx-auto transition-all transform hover:scale-105 shadow-xl shadow-cyan-500/20"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg flex items-center gap-3 mx-auto transition-all shadow-lg shadow-cyan-500/20"
             >
               Start Trading Smarter
               <ArrowRight size={20} />
@@ -987,11 +985,9 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   
   return (
     <div className="min-h-screen bg-black overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 opacity-40">
+      {/* Simplified Background for Better Performance */}
+      <div className="fixed inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-black to-purple-900"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-full filter blur-[200px] animate-pulse" style={{transform: 'translateZ(0)'}}></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-[200px] animate-pulse" style={{animationDelay: '4s', transform: 'translateZ(0)'}}></div>
       </div>
       
       <div className="relative z-10 p-6">
@@ -1145,8 +1141,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         
         {/* Motivational Quote Section */}
         <div className="mb-6 relative overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 backdrop-blur-md rounded-3xl p-8 border border-purple-500/20 text-center">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5"></div>
+          <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 rounded-3xl p-8 border border-purple-500/20 text-center">
             <div className="absolute top-4 left-8 text-6xl text-purple-400/20 font-serif">"</div>
             <div className="absolute bottom-4 right-8 text-6xl text-purple-400/20 font-serif transform rotate-180">"</div>
             <div className="relative z-10">
@@ -1161,8 +1156,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         </div>
         
         {/* Account Health Oscillator */}
-        <div className="mb-6 bg-gradient-to-r from-gray-900/80 to-black/80 backdrop-blur-md rounded-3xl p-6 border border-gray-800 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-yellow-500/5 to-green-500/5"></div>
+        <div className="mb-6 bg-gray-900/80 rounded-3xl p-6 border border-gray-800 relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -1287,8 +1281,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent"></div>
               <svg 
                 className="w-full h-20" 
-                viewBox="0 0 800 80" 
-                style={{filter: 'drop-shadow(0 0 8px currentColor)'}}
+                viewBox="0 0 800 80"
               >
                 {/* Grid lines */}
                 <defs>
@@ -1404,7 +1397,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
               <div className="flex justify-between items-center mt-2 text-xs">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                     <span className="text-gray-400">LIVE</span>
                   </div>
                   <span className="text-gray-500 font-mono">
@@ -1476,7 +1469,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           {/* Capital Card */}
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl p-4 border border-cyan-500/20 hover:border-cyan-400/40 transition-all">
+            <div className="relative bg-gray-900/90 rounded-3xl p-4 border border-cyan-500/20 hover:border-cyan-400/40 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-cyan-500/20 rounded-2xl">
                   <Shield size={24} className="text-cyan-400" />
@@ -1754,7 +1747,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         {/* Add Trade Button */}
         <button
           onClick={() => setShowAddTrade(true)}
-          className="mb-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 transition-all transform hover:scale-105 shadow-xl shadow-cyan-500/20"
+          className="mb-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-3 transition-all shadow-lg shadow-cyan-500/20"
         >
           <div className="p-2 bg-white/10 rounded-lg">
             <Plus size={20} />
