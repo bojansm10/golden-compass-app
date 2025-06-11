@@ -1086,7 +1086,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Trading Capital</label>
+                <label className="text-xs text-gray-400 mb-1 block">Starting Capital</label>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400">$</span>
                   <input
@@ -1482,7 +1482,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                   EDIT
                 </button>
               </div>
-              <p className="text-sm text-gray-400 mb-2">Trading Capital</p>
+              <p className="text-sm text-gray-400 mb-2">Starting Capital</p>
               <p className="text-3xl font-bold text-white">${capital.toLocaleString()}</p>
               {showCapitalEdit && (
                 <div className="mt-3">
@@ -1494,7 +1494,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
                     onBlur={() => setShowCapitalEdit(false)}
                     autoFocus
                   />
-                  <p className="text-xs text-gray-500 mt-1">Your starting trading capital</p>
+                  <p className="text-xs text-gray-500 mt-1">Your initial investment amount</p>
                 </div>
               )}
             </div>
