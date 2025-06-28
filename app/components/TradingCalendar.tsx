@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Target, TrendingUp, Flame, Trophy, Calendar } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -20,151 +20,216 @@ interface TradingCalendarProps {
 
 const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showDetails, setShowDetails] = useState(false);
+  const DAILY_GOAL = 500; // Daily profit goal
+  const DAILY_PIP_TARGET = 50; // Daily pip target
   
   const today = new Date();
   const todayStr = today.toDateString();
   
-  // Get today's trades
+  // Today's stats
   const todayTrades = trades.filter(trade => 
     new Date(trade.created_at).toDateString() === todayStr
   );
   const todayPL = todayTrades.reduce((sum, trade) => sum + trade.profit, 0);
   const todayPips = todayTrades.reduce((sum, trade) => sum + (trade.pips || 0), 0);
   
-  // Get first day of month
-  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-  const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-  const startDay = new Date(firstDay);
-  startDay.setDate(firstDay.getDate() - firstDay.getDay());
-  
-  // Generate days
-  const days: Date[] = [];
-  const current = new Date(startDay);
-  while (current <= lastDay || current.getDay() !== 0) {
-    days.push(new Date(current));
-    current.setDate(current.getDate() + 1);
-  }
-  
-  // Get day stats
-  const getDayPL = (date: Date) => {
-    const dayTrades = trades.filter(t => 
-      new Date(t.created_at).toDateString() === date.toDateString()
-    );
-    return dayTrades.reduce((sum, t) => sum + t.profit, 0);
-  };
+  // Week stats
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  const weekTrades = trades.filter(trade => {
+    const tradeDate = new Date(trade.created_at);
+    return tradeDate >= weekStart && tradeDate <= today;
+  });
+  const weekPL = weekTrades.reduce((sum, trade) => sum + trade.profit, 0);
   
   // Month stats
   const monthTrades = trades.filter(trade => {
     const d = new Date(trade.created_at);
-    return d.getMonth() === currentMonth.getMonth() && 
-           d.getFullYear() === currentMonth.getFullYear();
+    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
   });
   const monthPL = monthTrades.reduce((sum, t) => sum + t.profit, 0);
   
+  // Calculate streaks
+  const getStreak = () => {
+    let streak = 0;
+    const sortedDates = [...new Set(trades.map(t => 
+      new Date(t.created_at).toDateString()
+    ))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    
+    for (const dateStr of sortedDates) {
+      const dayTrades = trades.filter(t => 
+        new Date(t.created_at).toDateString() === dateStr
+      );
+      const dayPL = dayTrades.reduce((sum, t) => sum + t.profit, 0);
+      if (dayPL >= DAILY_GOAL) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+  
+  const currentStreak = getStreak();
+  const goalProgress = Math.min((todayPL / DAILY_GOAL) * 100, 100);
+  const pipProgress = Math.min((todayPips / DAILY_PIP_TARGET) * 100, 100);
+  
+  // Mini calendar days
+  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const startDay = new Date(firstDay);
+  startDay.setDate(firstDay.getDate() - firstDay.getDay());
+  
+  const days: Date[] = [];
+  for (let i = 0; i < 35; i++) {
+    const day = new Date(startDay);
+    day.setDate(startDay.getDate() + i);
+    days.push(day);
+  }
+  
   return (
-    <div className="bg-gray-900/60 rounded-xl border border-gray-800 p-3">
-      {/* Today's Performance - Always Visible */}
-      <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-800">
-        <div className="flex items-center gap-4">
-          <div className="text-sm">
-            <span className="text-gray-400">Today</span>
-            <div className={`text-xl font-bold ${todayPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {todayPL >= 0 ? '+' : ''}${Math.abs(todayPL).toFixed(2)}
+    <div className="bg-gray-900/60 rounded-2xl border border-gray-800 p-4">
+      {/* Header with Calendar Icon */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar size={16} className="text-cyan-400" />
+          <h3 className="text-sm font-medium text-gray-300">Daily Performance</h3>
+        </div>
+        <div className="text-xs text-gray-500">
+          {today.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        </div>
+      </div>
+      
+      {/* Today's Progress Bars */}
+      <div className="space-y-3 mb-4">
+        {/* Profit Goal Progress */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <div className="flex items-center gap-2">
+              <Target size={14} className="text-yellow-400" />
+              <span className="text-xs text-gray-400">Daily Goal</span>
             </div>
+            <span className={`text-sm font-bold ${todayPL >= DAILY_GOAL ? 'text-emerald-400' : 'text-white'}`}>
+              ${todayPL.toFixed(0)} / ${DAILY_GOAL}
+            </span>
           </div>
-          <div className="text-sm">
-            <span className="text-gray-400">Trades</span>
-            <div className="text-lg font-bold text-white">{todayTrades.length}</div>
-          </div>
-          <div className="text-sm">
-            <span className="text-gray-400">Pips</span>
-            <div className="text-lg font-bold text-purple-400">{todayPips.toFixed(0)}</div>
+          <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden relative">
+            <div 
+              className={`h-full transition-all duration-500 ${
+                goalProgress >= 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 
+                goalProgress >= 50 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
+                'bg-gradient-to-r from-red-400 to-pink-500'
+              }`}
+              style={{width: `${goalProgress}%`}}
+            />
+            {goalProgress >= 100 && (
+              <Trophy size={12} className="absolute right-2 top-0.5 text-yellow-300 animate-pulse" />
+            )}
           </div>
         </div>
         
-        {/* Toggle Calendar Button */}
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="text-xs px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-400 transition-all"
-        >
-          {showDetails ? 'Hide' : 'Show'} Calendar
-        </button>
-      </div>
-      
-      {/* Expandable Calendar Section */}
-      {showDetails && (
-        <div className="space-y-2">
-          {/* Month Navigation */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => {
-                const newMonth = new Date(currentMonth);
-                newMonth.setMonth(newMonth.getMonth() - 1);
-                setCurrentMonth(newMonth);
-              }}
-              className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            
-            <div className="text-xs text-gray-400">
-              {currentMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-              <span className={`ml-2 font-bold ${monthPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {monthPL >= 0 ? '+' : ''}${Math.abs(monthPL).toFixed(0)}
-              </span>
+        {/* Pip Target Progress */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={14} className="text-purple-400" />
+              <span className="text-xs text-gray-400">Pip Target</span>
             </div>
-            
-            <button
-              onClick={() => {
-                const newMonth = new Date(currentMonth);
-                newMonth.setMonth(newMonth.getMonth() + 1);
-                setCurrentMonth(newMonth);
-              }}
-              className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white"
-            >
-              <ChevronRight size={14} />
-            </button>
+            <span className={`text-sm font-bold ${todayPips >= DAILY_PIP_TARGET ? 'text-purple-400' : 'text-white'}`}>
+              {todayPips.toFixed(0)} / {DAILY_PIP_TARGET}
+            </span>
           </div>
-          
-          {/* Mini Calendar Grid */}
-          <div className="grid grid-cols-7 gap-0.5 text-xs">
-            {/* Day headers */}
-            {['S','M','T','W','T','F','S'].map(d => (
-              <div key={d} className="text-center text-gray-600 py-1">{d}</div>
-            ))}
-            
-            {/* Days */}
-            {days.map((date, i) => {
-              const pl = getDayPL(date);
-              const isToday = date.toDateString() === todayStr;
-              const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-              const hasTrades = pl !== 0;
-              
-              return (
-                <div
-                  key={i}
-                  className={`
-                    aspect-square flex items-center justify-center rounded text-xs relative
-                    ${!isCurrentMonth ? 'opacity-20' : ''}
-                    ${isToday ? 'ring-1 ring-cyan-500' : ''}
-                    ${hasTrades && !isToday ? 'bg-gray-800/50' : ''}
-                  `}
-                >
-                  <span className={`${isToday ? 'text-cyan-400 font-bold' : 'text-gray-500'}`}>
-                    {date.getDate()}
-                  </span>
-                  {hasTrades && (
-                    <div className={`absolute bottom-0.5 w-1 h-1 rounded-full ${
-                      pl >= 0 ? 'bg-emerald-400' : 'bg-red-400'
-                    }`} />
-                  )}
-                </div>
-              );
-            })}
+          <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-400 to-indigo-500 transition-all duration-500"
+              style={{width: `${pipProgress}%`}}
+            />
           </div>
         </div>
-      )}
+      </div>
+      
+      {/* Stats Grid */}
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="bg-black/40 rounded-lg p-2 text-center">
+          <div className="text-xs text-gray-500">Trades</div>
+          <div className="text-lg font-bold text-white">{todayTrades.length}</div>
+        </div>
+        <div className="bg-black/40 rounded-lg p-2 text-center">
+          <div className="text-xs text-gray-500">Week</div>
+          <div className={`text-lg font-bold ${weekPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            ${Math.abs(weekPL) >= 1000 ? `${(weekPL/1000).toFixed(1)}k` : weekPL.toFixed(0)}
+          </div>
+        </div>
+        <div className="bg-black/40 rounded-lg p-2 text-center">
+          <div className="text-xs text-gray-500">Month</div>
+          <div className={`text-lg font-bold ${monthPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            ${Math.abs(monthPL) >= 1000 ? `${(monthPL/1000).toFixed(1)}k` : monthPL.toFixed(0)}
+          </div>
+        </div>
+        <div className="bg-black/40 rounded-lg p-2 text-center">
+          <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
+            <Flame size={10} className="text-orange-400" />
+            Streak
+          </div>
+          <div className="text-lg font-bold text-orange-400">{currentStreak}d</div>
+        </div>
+      </div>
+      
+      {/* Mini Calendar */}
+      <div className="bg-black/20 rounded-xl p-2">
+        <div className="text-center text-xs text-gray-500 mb-2">
+          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((date, i) => {
+            const dayTrades = trades.filter(t => 
+              new Date(t.created_at).toDateString() === date.toDateString()
+            );
+            const dayPL = dayTrades.reduce((sum, t) => sum + t.profit, 0);
+            const isToday = date.toDateString() === todayStr;
+            const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+            const hitGoal = dayPL >= DAILY_GOAL;
+            
+            return (
+              <div
+                key={i}
+                className={`
+                  aspect-square flex items-center justify-center rounded text-[10px] relative
+                  ${!isCurrentMonth ? 'opacity-20' : ''}
+                  ${isToday ? 'ring-2 ring-cyan-500 bg-cyan-500/20' : ''}
+                  ${hitGoal && !isToday ? 'bg-emerald-500/20' : ''}
+                  ${dayPL < 0 && !isToday ? 'bg-red-500/10' : ''}
+                `}
+              >
+                <span className={`
+                  ${isToday ? 'text-cyan-400 font-bold' : 
+                    hitGoal ? 'text-emerald-400' :
+                    dayPL < 0 ? 'text-red-400' :
+                    'text-gray-600'}
+                `}>
+                  {date.getDate()}
+                </span>
+                {hitGoal && !isToday && (
+                  <div className="absolute -top-0.5 -right-0.5">
+                    <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Calendar Legend */}
+        <div className="flex items-center justify-center gap-3 mt-2 text-[10px]">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-emerald-500/20 rounded" />
+            <span className="text-gray-500">Goal Hit</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full" />
+            <span className="text-gray-500">Perfect Day</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
