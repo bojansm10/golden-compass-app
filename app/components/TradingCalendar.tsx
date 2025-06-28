@@ -95,7 +95,7 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades = [], starting
     days.push(day);
   }
   
-  const toggleSection = (section: string) => {
+  const toggleSection = (section: 'progress' | 'stats' | 'calendar') => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
