@@ -1,5 +1,6 @@
 'use client';
 
+import MotivationalQuote from './components/MotivationalQuote';
 import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Plus, X, DollarSign, TrendingUp, AlertTriangle, Award, Clock, Activity, Users, Zap, Shield, Target, BarChart3, Sparkles, ChevronUp, ChevronDown, Brain, Flame, Settings, ArrowRight, Eye, EyeOff, Mail, Lock, User, LogOut } from 'lucide-react';
@@ -378,22 +379,6 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </button>
           </div>
         )}
-        
-        {/* Motivational Quote Section */}
-        <div className="mb-6 relative overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 rounded-3xl p-4 md:p-8 border border-purple-500/20 text-center">
-            <div className="absolute top-4 left-8 text-6xl text-purple-400/20 font-serif">"</div>
-            <div className="absolute bottom-4 right-8 text-6xl text-purple-400/20 font-serif transform rotate-180">"</div>
-            <div className="relative z-10">
-              <blockquote className="text-base md:text-xl lg:text-2xl font-serif font-normal text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200 mb-4 leading-relaxed tracking-wide" style={{fontFamily: "'Playfair Display', 'Georgia', serif", fontStyle: 'italic', letterSpacing: '0.02em'}}>
-                The market is a device for transferring money from the impatient to the patient. Master your emotions, follow your strategy, and let time be your greatest ally.
-              </blockquote>
-              <cite className="text-sm text-purple-400/80 font-medium tracking-widest uppercase" style={{fontFamily: "'Inter', sans-serif", letterSpacing: '0.15em'}}>
-                — Golden Compass Wisdom
-              </cite>
-            </div>
-          </div>
-        </div>
         
         {/* Account Health Oscillator */}
         <div className="mb-6 bg-gray-900/80 rounded-3xl p-4 md:p-6 border border-gray-800 relative overflow-hidden">
