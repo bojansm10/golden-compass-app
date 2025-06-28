@@ -6,6 +6,7 @@ import { Plus, X, DollarSign, TrendingUp, AlertTriangle, Award, Clock, Activity,
 import { supabase } from '@/lib/supabase';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
+import TradingCalendar from './components/TradingCalendar';
 
 // Register Page Component
 const RegisterPage = ({ onNavigate, onLogin }: { onNavigate: (page: string) => void, onLogin: (user: any) => void }) => {
