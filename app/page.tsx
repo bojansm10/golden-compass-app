@@ -246,13 +246,13 @@ const AddTradeForm = ({
     const pipSize = getPipSize(instrument);
     let priceMovement = exit - entry;
     
-    // For SELL trades, we need to reverse the calculation
+    // For SELL trades, positive movement is when price goes down
     if (type === 'SELL') {
-      priceMovement = -priceMovement;
+      priceMovement = entry - exit;
     }
     
-    // Calculate pips
-    const pips = Math.abs(priceMovement / pipSize);
+    // Calculate pips (can be positive or negative)
+    const pips = priceMovement / pipSize;
     
     return Math.round(pips * 10) / 10; // Round to 1 decimal place
   };
@@ -478,22 +478,22 @@ const AddTradeForm = ({
               <label className="block text-sm font-medium text-cyan-400 mb-2">Entry Price <span className="text-xs text-gray-400">(required for pips)</span></label>
               <input
                 type="number"
-                step="0.0001"
+                step="0.00001"
                 className="w-full bg-black/40 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 transition-all"
                 value={formData.entryPrice}
                 onChange={(e) => setFormData({...formData, entryPrice: e.target.value})}
-                placeholder="0.0000"
+                placeholder="0.00000"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-cyan-400 mb-2">Exit Price <span className="text-xs text-gray-400">(required for pips)</span></label>
               <input
                 type="number"
-                step="0.0001"
+                step="0.00001"
                 className="w-full bg-black/40 border border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 transition-all"
                 value={formData.exitPrice}
                 onChange={(e) => setFormData({...formData, exitPrice: e.target.value})}
-                placeholder="0.0000"
+                placeholder="0.00000"
               />
             </div>
           </div>
@@ -501,14 +501,27 @@ const AddTradeForm = ({
           {/* Pip calculation helper */}
           {formData.instrument && (
             <div className="text-xs text-gray-500 bg-gray-800/30 rounded-lg p-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Activity size={12} className="text-cyan-400" />
+                <span className="text-cyan-400 font-medium">Live Pip Calculator</span>
+              </div>
               {formData.instrument === 'XAUUSD' && "Gold: 1 pip = $0.10 movement (e.g., 3330→3331 = 10 pips)"}
               {formData.instrument === 'XAGUSD' && "Silver: 1 pip = $0.01 movement"}
-              {['EURUSD', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'].includes(formData.instrument) && "Forex: 1 pip = 0.0001 movement (4th decimal)"}
-              {['USDJPY', 'EURJPY', 'GBPJPY'].includes(formData.instrument) && "JPY pairs: 1 pip = 0.01 movement (2nd decimal)"}
-              {['DJ30', 'NAS100', 'DAX40'].includes(formData.instrument) && "Index: 1 pip = 1 point movement"}
+              {['EURUSD', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURGBP', 'AUDCAD', 'EURAUD', 'EURNZD', 'GBPAUD', 'GBPNZD'].includes(formData.instrument) && "Forex: 1 pip = 0.0001 movement (4th decimal)"}
+              {['USDJPY', 'EURJPY', 'GBPJPY', 'CADJPY', 'CHFJPY'].includes(formData.instrument) && "JPY pairs: 1 pip = 0.01 movement (2nd decimal)"}
+              {['DJ30', 'NAS100', 'DAX40', 'FTSE100', 'NIK225', 'ASX200', 'HK50'].includes(formData.instrument) && "Index: 1 pip = 1 point movement"}
               {formData.instrument === 'SPX500' && "S&P 500: 1 pip = 0.1 point movement"}
+              {['USOIL', 'UKOIL'].includes(formData.instrument) && "Oil: 1 pip = $0.01 movement"}
+              {formData.instrument === 'NATGAS' && "Natural Gas: 1 pip = $0.001 movement"}
+              {formData.instrument === 'COPPER' && "Copper: 1 pip = $0.0001 movement"}
               {formData.instrument === 'BTCUSD' && "Bitcoin: 1 pip = $1 movement"}
               {formData.instrument === 'ETHUSD' && "Ethereum: 1 pip = $0.10 movement"}
+              {formData.instrument === 'LTCUSD' && "Litecoin: 1 pip = $0.01 movement"}
+              {formData.instrument === 'ADAUSD' && "Cardano: 1 pip = $0.0001 movement"}
+              {formData.instrument === 'DOTUSD' && "Polkadot: 1 pip = $0.001 movement"}
+              <div className="text-[10px] mt-1 text-gray-600">
+                {formData.type === 'BUY' ? '📈 BUY: Profit when price goes up' : '📉 SELL: Profit when price goes down'}
+              </div>
             </div>
           )}
           
@@ -523,12 +536,28 @@ const AddTradeForm = ({
               placeholder="Enter P&L (negative for loss)"
             />
             <p className="text-xs text-gray-500 mt-2">Enter negative value for losses (e.g., -50)</p>
-            {formData.entryPrice && formData.exitPrice && calculatedPips > 0 && (
-              <p className="text-xs text-cyan-400 mt-1">
-                Price movement: {calculatedPips.toFixed(1)} pips
-              </p>
-            )}
           </div>
+          
+          {/* Live Pip Calculation Display */}
+          {formData.entryPrice && formData.exitPrice && (
+            <div className={`border rounded-xl p-3 ${
+              calculatedPips >= 0 
+                ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30' 
+                : 'bg-gradient-to-r from-red-500/10 to-pink-500/10 border-red-500/30'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Calculated Pips:</span>
+                <span className={`text-lg font-bold ${
+                  calculatedPips >= 0 ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {calculatedPips >= 0 ? '+' : ''}{calculatedPips.toFixed(1)} pips
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {formData.type} {formData.instrument}: {formData.entryPrice} → {formData.exitPrice}
+              </div>
+            </div>
+          )}
           
           {formData.profit && (
             <div className={`border rounded-2xl p-4 backdrop-blur-sm ${
@@ -553,6 +582,14 @@ const AddTradeForm = ({
                     <span className="text-gray-400">Saved ({compoundingPercent}%):</span>
                     <span className="font-medium text-cyan-400">
                       ${(parseFloat(formData.profit) * compoundingPercent / 100).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {formData.entryPrice && formData.exitPrice && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Pips:</span>
+                    <span className={`font-medium ${calculatedPips >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {calculatedPips >= 0 ? '+' : ''}{calculatedPips.toFixed(1)}
                     </span>
                   </div>
                 )}
