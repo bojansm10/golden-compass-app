@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Activity, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Calendar, Target, Zap, DollarSign } from 'lucide-react';
+import { Activity, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Calendar, Target, Zap, DollarSign, Flame, Trophy } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -11,6 +11,7 @@ interface Trade {
   instrument: string;
   type: string;
   instructor: string;
+  pips?: number;
 }
 
 interface TradingCalendarProps {
@@ -21,6 +22,8 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+  
+  const DAILY_PIP_TARGET = 80; // Daily pip target
   
   // Get the first day of the month
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -39,13 +42,15 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
     currentDate.setDate(currentDate.getDate() + 1);
   }
   
-  // Calculate daily P&L for each day
-  const getDayPL = (date: Date) => {
+  // Calculate daily P&L and pips for each day
+  const getDayStats = (date: Date) => {
     const dayTrades = trades.filter(trade => {
       const tradeDate = new Date(trade.created_at);
       return tradeDate.toDateString() === date.toDateString();
     });
-    return dayTrades.reduce((sum, trade) => sum + trade.profit, 0);
+    const totalPL = dayTrades.reduce((sum, trade) => sum + trade.profit, 0);
+    const totalPips = dayTrades.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+    return { totalPL, totalPips, trades: dayTrades };
   };
   
   // Get trades for a specific day
@@ -85,6 +90,9 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
   };
   
   const monthStats = getMonthlyStats();
+  const today = new Date();
+  const todayStats = getDayStats(today);
+  const pipProgress = Math.min((todayStats.totalPips / DAILY_PIP_TARGET) * 100, 100);
   
   // Motivational quotes for empty days
   const motivationalQuotes = [
@@ -208,15 +216,131 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
           
           {/* Calendar days */}
           {calendarDays.map((date, index) => {
-            const dayPL = getDayPL(date);
-            const dayTrades = getDayTrades(date);
+            const dayStats = getDayStats(date);
+            const dayTrades = dayStats.trades;
             const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-            const isToday = date.toDateString() === new Date().toDateString();
+            const isToday = date.toDateString() === today.toDateString();
             const isSelected = selectedDate?.toDateString() === date.toDateString();
             const isHovered = hoveredDate?.toDateString() === date.toDateString();
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
             const hasTrades = dayTrades.length > 0;
             
+            // Special rendering for today
+            if (isToday && isCurrentMonth) {
+              return (
+                <div
+                  key={index}
+                  onClick={() => dayTrades.length > 0 && setSelectedDate(date)}
+                  className={`
+                    relative group rounded-2xl border-2 transition-all duration-300 overflow-hidden
+                    col-span-2 row-span-2 min-h-[140px]
+                    bg-gradient-to-br from-cyan-900/30 via-blue-900/20 to-indigo-900/30
+                    border-cyan-400/50 shadow-xl shadow-cyan-500/20
+                    ${hasTrades ? 'cursor-pointer hover:scale-[1.02]' : ''}
+                    ${isSelected ? 'ring-2 ring-cyan-400/50' : ''}
+                  `}
+                >
+                  {/* Today header */}
+                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-sm p-2 border-b border-cyan-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-cyan-400">TODAY</span>
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                      </div>
+                      <span className="text-xs text-gray-400">{date.getDate()}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Target Progress */}
+                  <div className="pt-10 px-3 pb-3">
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <Target size={12} />
+                          Daily Target
+                        </span>
+                        <span className="text-xs font-bold text-cyan-400">
+                          {todayStats.totalPips.toFixed(0)}/{DAILY_PIP_TARGET} pips
+                        </span>
+                      </div>
+                      
+                      {/* Progress bar */}
+                      <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-500 rounded-full ${
+                            pipProgress >= 100 
+                              ? 'bg-gradient-to-r from-emerald-400 to-green-500' 
+                              : pipProgress >= 50
+                                ? 'bg-gradient-to-r from-yellow-400 to-orange-500'
+                                : 'bg-gradient-to-r from-red-400 to-pink-500'
+                          }`}
+                          style={{width: `${pipProgress}%`}}
+                        ></div>
+                      </div>
+                      
+                      {/* Achievement status */}
+                      <div className="mt-1 text-center">
+                        {pipProgress >= 100 ? (
+                          <div className="flex items-center justify-center gap-1 text-emerald-400">
+                            <Trophy size={14} />
+                            <span className="text-xs font-bold">TARGET ACHIEVED!</span>
+                          </div>
+                        ) : pipProgress > 0 ? (
+                          <span className="text-xs text-gray-400">
+                            {(DAILY_PIP_TARGET - todayStats.totalPips).toFixed(0)} pips to go
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-500 italic">
+                            Start trading to hit target
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* P&L Display */}
+                    {hasTrades && (
+                      <div className="mt-3 pt-3 border-t border-gray-800">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-400">P&L</span>
+                          <span className={`text-lg font-bold ${
+                            dayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
+                          }`}>
+                            {dayStats.totalPL >= 0 ? '+' : ''}${Math.abs(dayStats.totalPL).toFixed(2)}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {dayTrades.length} trade{dayTrades.length > 1 ? 's' : ''} today
+                        </span>
+                      </div>
+                    )}
+                    
+                    {!hasTrades && (
+                      <div className="mt-3 text-center">
+                        <Flame size={20} className="mx-auto text-orange-400 mb-1 animate-pulse" />
+                        <p className="text-xs text-gray-400 italic">
+                          Ready to conquer the market!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+            
+            // Skip rendering the grid cell that would overlap with today's expanded cell
+            const todayIndex = calendarDays.findIndex(d => d.toDateString() === today.toDateString());
+            const skipIndices = [];
+            if (todayIndex !== -1 && today.getMonth() === currentMonth.getMonth()) {
+              skipIndices.push(todayIndex + 1); // Right cell
+              skipIndices.push(todayIndex + 7); // Bottom cell
+              skipIndices.push(todayIndex + 8); // Bottom-right cell
+            }
+            
+            if (skipIndices.includes(index)) {
+              return <div key={index}></div>;
+            }
+            
+            // Regular day rendering
             return (
               <div
                 key={index}
@@ -224,20 +348,18 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
                 onMouseEnter={() => setHoveredDate(date)}
                 onMouseLeave={() => setHoveredDate(null)}
                 className={`
-                  relative group rounded-xl border transition-all duration-300 min-h-[80px] overflow-hidden
+                  relative group rounded-xl border transition-all duration-300 min-h-[60px] overflow-hidden
                   ${isCurrentMonth 
                     ? hasTrades 
                       ? 'bg-gradient-to-br from-gray-900/90 to-black/90' 
                       : 'bg-gradient-to-br from-gray-900/40 to-gray-800/40'
                     : 'bg-gray-900/20'
                   }
-                  ${isToday 
-                    ? 'border-cyan-400/50 shadow-lg shadow-cyan-500/20' 
-                    : hasTrades
-                      ? dayPL >= 0
-                        ? 'border-emerald-500/30 hover:border-emerald-400/50'
-                        : 'border-red-500/30 hover:border-red-400/50'
-                      : 'border-gray-800/50 hover:border-gray-700'
+                  ${hasTrades
+                    ? dayStats.totalPL >= 0
+                      ? 'border-emerald-500/30 hover:border-emerald-400/50'
+                      : 'border-red-500/30 hover:border-red-400/50'
+                    : 'border-gray-800/50 hover:border-gray-700'
                   }
                   ${isSelected ? 'ring-2 ring-cyan-400/50 border-cyan-400' : ''}
                   ${hasTrades ? 'cursor-pointer hover:scale-[1.02]' : ''}
@@ -245,66 +367,44 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
                 `}
               >
                 {/* Date number */}
-                <div className={`absolute top-2 left-2 text-sm font-medium ${
+                <div className={`absolute top-1 left-2 text-xs font-medium ${
                   isCurrentMonth 
-                    ? isToday 
-                      ? 'text-cyan-400' 
-                      : isWeekend 
-                        ? 'text-purple-400' 
-                        : 'text-gray-300'
+                    ? isWeekend 
+                      ? 'text-purple-400' 
+                      : 'text-gray-300'
                     : 'text-gray-600'
                 }`}>
                   {date.getDate()}
                 </div>
                 
-                {/* Today indicator */}
-                {isToday && (
-                  <div className="absolute top-2 right-2">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                  </div>
-                )}
-                
                 {hasTrades ? (
                   <>
                     {/* Trade indicator dot */}
-                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
-                      dayPL >= 0 ? 'bg-emerald-400' : 'bg-red-400'
-                    } ${!isToday ? 'animate-pulse' : ''}`}></div>
+                    <div className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
+                      dayStats.totalPL >= 0 ? 'bg-emerald-400' : 'bg-red-400'
+                    }`}></div>
                     
                     {/* P&L display */}
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className={`text-sm font-bold ${
-                        dayPL >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    <div className="absolute bottom-1 left-2 right-1">
+                      <div className={`text-xs font-bold ${
+                        dayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
-                        {dayPL >= 0 ? '+' : ''}${Math.abs(dayPL).toFixed(0)}
+                        {dayStats.totalPL >= 0 ? '+' : ''}${Math.abs(dayStats.totalPL).toFixed(0)}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {dayTrades.length} trade{dayTrades.length > 1 ? 's' : ''}
+                      <div className="text-[10px] text-gray-500">
+                        {dayTrades.length}t
                       </div>
                     </div>
-                    
-                    {/* Profit/Loss gradient overlay */}
-                    <div className={`absolute inset-0 opacity-10 ${
-                      dayPL >= 0 
-                        ? 'bg-gradient-to-br from-emerald-400 to-transparent' 
-                        : 'bg-gradient-to-br from-red-400 to-transparent'
-                    }`}></div>
                   </>
                 ) : isCurrentMonth ? (
                   <>
                     {/* Empty day content */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="text-center px-2">
-                        <DollarSign size={20} className="mx-auto text-gray-600 mb-1" />
-                        <p className="text-xs text-gray-500 italic">
+                      <div className="text-center px-1">
+                        <p className="text-[10px] text-gray-500 italic">
                           {getRandomQuote(date)}
                         </p>
                       </div>
-                    </div>
-                    
-                    {/* Subtle pattern for empty days */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="absolute inset-0 bg-gradient-to-br from-gray-700/20 via-transparent to-gray-700/20"></div>
                     </div>
                   </>
                 ) : null}
@@ -356,9 +456,12 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
           </div>
           <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
             <span className="text-sm text-gray-400">Day Total:</span>
-            <span className={`text-lg font-bold ${getDayPL(selectedDate) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {getDayPL(selectedDate) >= 0 ? '+' : ''}${Math.abs(getDayPL(selectedDate)).toFixed(2)}
-            </span>
+            <div className="text-right">
+              <span className={`text-lg font-bold block ${getDayStats(selectedDate).totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {getDayStats(selectedDate).totalPL >= 0 ? '+' : ''}${Math.abs(getDayStats(selectedDate).totalPL).toFixed(2)}
+              </span>
+              <span className="text-xs text-gray-500">{getDayStats(selectedDate).totalPips.toFixed(0)} pips</span>
+            </div>
           </div>
         </div>
       )}
