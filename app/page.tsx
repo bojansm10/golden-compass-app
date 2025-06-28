@@ -204,37 +204,60 @@ const AddTradeForm = ({
     return user?.id || user?.user?.id;
   };
   
-  // Pip value mapping for different instruments
-  const getPipValue = (instrument: string, lotSize: number) => {
-    const pipValues: Record<string, number> = {
-      // Forex majors (per 0.01 lot)
-      'EURUSD': 0.1, 'GBPUSD': 0.1, 'USDJPY': 0.1, 'USDCHF': 0.1,
-      'AUDUSD': 0.1, 'USDCAD': 0.1, 'NZDUSD': 0.1,
-      // Forex minors
-      'EURJPY': 0.1, 'EURGBP': 0.1, 'GBPJPY': 0.1, 'AUDCAD': 0.1,
-      'CADJPY': 0.1, 'CHFJPY': 0.1, 'EURAUD': 0.1, 'EURNZD': 0.1,
-      'GBPAUD': 0.1, 'GBPNZD': 0.1,
-      // Indices (per 0.01 lot)
-      'DJ30': 0.1, 'SPX500': 0.1, 'NAS100': 0.1, 'DAX40': 0.1,
-      'FTSE100': 0.1, 'NIK225': 0.1, 'ASX200': 0.1, 'HK50': 0.1,
+  // Pip size mapping for different instruments (1 pip = this much price movement)
+  const getPipSize = (instrument: string) => {
+    const pipSizes: Record<string, number> = {
+      // Forex majors (4 decimal places, except JPY pairs)
+      'EURUSD': 0.0001, 'GBPUSD': 0.0001, 'USDCHF': 0.0001,
+      'AUDUSD': 0.0001, 'USDCAD': 0.0001, 'NZDUSD': 0.0001,
+      // JPY pairs (2 decimal places)
+      'USDJPY': 0.01, 'EURJPY': 0.01, 'GBPJPY': 0.01, 'CADJPY': 0.01, 'CHFJPY': 0.01,
+      // Other forex pairs
+      'EURGBP': 0.0001, 'AUDCAD': 0.0001, 'EURAUD': 0.0001, 'EURNZD': 0.0001,
+      'GBPAUD': 0.0001, 'GBPNZD': 0.0001,
+      // Indices (typically 1 point = 1 pip)
+      'DJ30': 1, 'SPX500': 0.1, 'NAS100': 1, 'DAX40': 1,
+      'FTSE100': 1, 'NIK225': 1, 'ASX200': 1, 'HK50': 1,
       // Commodities
-      'XAUUSD': 1, 'XAGUSD': 5, 'USOIL': 1, 'UKOIL': 1,
-      'NATGAS': 1, 'COPPER': 1,
-      // Crypto
-      'BTCUSD': 1, 'ETHUSD': 0.1, 'LTCUSD': 0.01, 'ADAUSD': 0.0001, 'DOTUSD': 0.001
+      'XAUUSD': 0.1,  // Gold: 1 pip = 0.1 price movement (3330 to 3331 = 10 pips)
+      'XAGUSD': 0.01, // Silver: 1 pip = 0.01 price movement
+      'USOIL': 0.01,  // Oil: 1 pip = 0.01 price movement
+      'UKOIL': 0.01,
+      'NATGAS': 0.001,
+      'COPPER': 0.0001,
+      // Crypto (varies by crypto)
+      'BTCUSD': 1,     // Bitcoin: 1 pip = $1 movement
+      'ETHUSD': 0.1,   // Ethereum: 1 pip = $0.1 movement
+      'LTCUSD': 0.01,  // Litecoin: 1 pip = $0.01 movement
+      'ADAUSD': 0.0001,
+      'DOTUSD': 0.001
     };
     
-    return (pipValues[instrument] || 0.1) * (lotSize / 0.01);
+    return pipSizes[instrument] || 0.0001;
   };
   
-  // Calculate pips from profit
-  const calculatePips = (profit: number, instrument: string, lotSize: number) => {
-    if (!profit || !instrument || !lotSize) return 0;
-    const pipValue = getPipValue(instrument, lotSize);
-    return Math.abs(profit / pipValue);
+  // Calculate pips from price movement
+  const calculatePips = (entryPrice: string, exitPrice: string, instrument: string, type: string) => {
+    const entry = parseFloat(entryPrice);
+    const exit = parseFloat(exitPrice);
+    
+    if (!entry || !exit || !instrument) return 0;
+    
+    const pipSize = getPipSize(instrument);
+    let priceMovement = exit - entry;
+    
+    // For SELL trades, we need to reverse the calculation
+    if (type === 'SELL') {
+      priceMovement = -priceMovement;
+    }
+    
+    // Calculate pips
+    const pips = Math.abs(priceMovement / pipSize);
+    
+    return Math.round(pips * 10) / 10; // Round to 1 decimal place
   };
   
-  const calculatedPips = calculatePips(parseFloat(formData.profit) || 0, formData.instrument, formData.lotSize);
+  const calculatedPips = calculatePips(formData.entryPrice, formData.exitPrice, formData.instrument, formData.type);
   
   const handleSubmit = async () => {
     const instructorName = formData.instructor === 'Other' ? formData.customInstructor : formData.instructor;
@@ -452,7 +475,7 @@ const AddTradeForm = ({
           
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-cyan-400 mb-2">Entry Price <span className="text-xs text-gray-400">(notes)</span></label>
+              <label className="block text-sm font-medium text-cyan-400 mb-2">Entry Price <span className="text-xs text-gray-400">(required for pips)</span></label>
               <input
                 type="number"
                 step="0.0001"
@@ -463,7 +486,7 @@ const AddTradeForm = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-cyan-400 mb-2">Exit Price <span className="text-xs text-gray-400">(notes)</span></label>
+              <label className="block text-sm font-medium text-cyan-400 mb-2">Exit Price <span className="text-xs text-gray-400">(required for pips)</span></label>
               <input
                 type="number"
                 step="0.0001"
@@ -474,6 +497,20 @@ const AddTradeForm = ({
               />
             </div>
           </div>
+          
+          {/* Pip calculation helper */}
+          {formData.instrument && (
+            <div className="text-xs text-gray-500 bg-gray-800/30 rounded-lg p-2">
+              {formData.instrument === 'XAUUSD' && "Gold: 1 pip = $0.10 movement (e.g., 3330→3331 = 10 pips)"}
+              {formData.instrument === 'XAGUSD' && "Silver: 1 pip = $0.01 movement"}
+              {['EURUSD', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'].includes(formData.instrument) && "Forex: 1 pip = 0.0001 movement (4th decimal)"}
+              {['USDJPY', 'EURJPY', 'GBPJPY'].includes(formData.instrument) && "JPY pairs: 1 pip = 0.01 movement (2nd decimal)"}
+              {['DJ30', 'NAS100', 'DAX40'].includes(formData.instrument) && "Index: 1 pip = 1 point movement"}
+              {formData.instrument === 'SPX500' && "S&P 500: 1 pip = 0.1 point movement"}
+              {formData.instrument === 'BTCUSD' && "Bitcoin: 1 pip = $1 movement"}
+              {formData.instrument === 'ETHUSD' && "Ethereum: 1 pip = $0.10 movement"}
+            </div>
+          )}
           
           <div>
             <label className="block text-sm font-medium text-cyan-400 mb-2">Profit/Loss (USD) *</label>
@@ -486,9 +523,9 @@ const AddTradeForm = ({
               placeholder="Enter P&L (negative for loss)"
             />
             <p className="text-xs text-gray-500 mt-2">Enter negative value for losses (e.g., -50)</p>
-            {calculatedPips > 0 && (
+            {formData.entryPrice && formData.exitPrice && calculatedPips > 0 && (
               <p className="text-xs text-cyan-400 mt-1">
-                ≈ {calculatedPips.toFixed(1)} pips
+                Price movement: {calculatedPips.toFixed(1)} pips
               </p>
             )}
           </div>
