@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Calendar, TrendingUp, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart3, Calendar } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -71,13 +71,6 @@ const TradingHistory: React.FC<TradingHistoryProps> = ({
 
   const dailyHistory = generateDailyHistory();
 
-  // Calculate summary metrics
-  const totalDays = dailyHistory.length;
-  const successfulDays = dailyHistory.filter(day => day.achieved).length;
-  const successRate = totalDays > 0 ? (successfulDays / totalDays) * 100 : 0;
-  const totalProfit = dailyHistory.reduce((sum, day) => sum + day.dailyProfit, 0);
-  const finalCapital = startingCapital + totalProfit;
-
   return (
     <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl">
       {/* Header */}
@@ -97,39 +90,6 @@ const TradingHistory: React.FC<TradingHistoryProps> = ({
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-xs text-gray-400">LIVE</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Summary Stats Section */}
-      <div className="border-b border-gray-700">
-        <div className="w-full px-5 py-3">
-          <div className="flex items-center gap-2 mb-4">
-            <Award size={16} className="text-green-400" />
-            <span className="font-medium text-white">Performance Summary</span>
-          </div>
-        </div>
-        
-        <div className="px-5 pb-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-sm text-gray-400 mb-1">Total Days</div>
-              <div className="text-2xl font-bold text-white">{totalDays}</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-sm text-gray-400 mb-1">Success Rate</div>
-              <div className="text-2xl font-bold text-yellow-400">{successRate.toFixed(1)}%</div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-sm text-gray-400 mb-1">Total Profit</div>
-              <div className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                ${totalProfit.toFixed(2)}
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="text-sm text-gray-400 mb-1">Final Capital</div>
-              <div className="text-2xl font-bold text-cyan-400">${finalCapital.toFixed(2)}</div>
-            </div>
           </div>
         </div>
       </div>
@@ -166,10 +126,10 @@ const TradingHistory: React.FC<TradingHistoryProps> = ({
                         <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
                           day.achieved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300'
                         }`}>
-                          {day.day}
+                          {day.date.getDate()}
                         </div>
                         <div>
-                          <div className="text-white font-medium text-sm">Day {day.day}</div>
+                          <div className="text-white font-medium text-sm">Day {day.date.getDate()}</div>
                           <div className="text-xs text-gray-400">
                             {day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                           </div>
