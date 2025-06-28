@@ -210,7 +210,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   const todayPL = calculateTodayPL();
   const dailyLimit = capital * (riskPercent / 100);
   const remainingAllowance = Math.max(0, dailyLimit - Math.abs(Math.min(todayPL, 0)));
-  const maxLotSize = (available / 100 * 0.01).toFixed(2);
+  const maxLotSize = parseFloat((available / 100 * 0.01).toFixed(2));
   const instructorStats = getInstructorStats();
   const totalPL = trades.reduce((sum, trade) => sum + trade.profit, 0);
   const riskUsed = dailyLimit > 0 ? (Math.abs(Math.min(todayPL, 0)) / dailyLimit) * 100 : 0;
