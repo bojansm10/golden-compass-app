@@ -310,6 +310,9 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           </div>
         </header>
         
+        {/* Motivational Quote - ADDED HERE */}
+        <MotivationalQuote />
+        
         {/* Quick Settings Panel */}
         {showQuickSettings && (
           <div className="mb-6 bg-gray-900/40 rounded-2xl p-3 md:p-4 border border-gray-800">
