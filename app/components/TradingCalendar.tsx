@@ -14,13 +14,13 @@ interface Trade {
   exit_price?: number;
 }
 
-interface TradingHistoryProps {
+interface TradingCalendarProps {
   trades?: Trade[];
   startingCapital?: number;
   dailyGoal?: number;
 }
 
-const TradingHistory: React.FC<TradingHistoryProps> = ({ 
+const TradingCalendar: React.FC<TradingCalendarProps> = ({ 
   trades = [], 
   startingCapital = 100,
   dailyGoal = 10 
@@ -202,4 +202,4 @@ const TradingHistory: React.FC<TradingHistoryProps> = ({
   );
 };
 
-export default TradingHistory;
+export default TradingCalendar;
