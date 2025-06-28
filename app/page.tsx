@@ -395,7 +395,10 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
         />
         
         <div className="mb-6">
-          <TradingCalendar trades={trades} />
+          <TradingCalendar 
+  trades={trades} 
+  startingCapital={capital}
+  dailyGoal={capital * (riskPercent / 100)}
         </div>
         
         {/* Main Metrics Grid */}
