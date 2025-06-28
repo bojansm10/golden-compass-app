@@ -394,7 +394,21 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           todayPL={todayPL}
         />
         
-        {/* Trading Calendar - FIXED SYNTAX */}
+        {/* Add Trade Button */}
+        <div className="mb-6 flex justify-center">
+          <button
+            onClick={() => setShowAddTrade(true)}
+            className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-6 md:px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-105 group"
+          >
+            <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-all">
+              <Plus size={20} className="md:w-6 md:h-6" />
+            </div>
+            <span className="text-base md:text-lg font-bold">New Trade Entry</span>
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          </button>
+        </div>
+        
+        {/* Trading Calendar */}
         <div className="mb-6">
           <TradingCalendar 
             trades={trades} 
@@ -682,17 +696,6 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
           </div>
         </div>
-        
-        {/* Add Trade Button */}
-        <button
-          onClick={() => setShowAddTrade(true)}
-          className="mb-6 w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-4 md:px-6 py-3 rounded-2xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg shadow-cyan-500/20"
-        >
-          <div className="p-2 bg-white/10 rounded-lg">
-            <Plus size={18} className="md:w-5 md:h-5" />
-          </div>
-          <span className="text-sm md:text-base">New Trade Entry</span>
-        </button>
         
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
