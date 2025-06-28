@@ -119,17 +119,31 @@ const TradingHistory: React.FC<TradingHistoryProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {dailyHistory.map((day, index) => (
-                  <tr key={index} className="border-b border-gray-700/30 hover:bg-gray-800/50 transition-colors">
+                {[...dailyHistory].reverse().map((day, index) => (
+                  <tr key={index} className={`border-b border-gray-700/30 hover:bg-gray-800/50 transition-colors ${
+                    day.date.toDateString() === new Date().toDateString() ? 'bg-cyan-500/10 border-cyan-500/30' : ''
+                  }`}>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          day.achieved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-300'
+                        <div className={`${
+                          day.date.toDateString() === new Date().toDateString() 
+                            ? 'w-8 h-8' : 'w-6 h-6'
+                        } rounded-lg flex items-center justify-center text-xs font-bold ${
+                          day.date.toDateString() === new Date().toDateString() 
+                            ? 'bg-cyan-500/30 text-cyan-300 ring-2 ring-cyan-400/50' 
+                            : day.achieved 
+                              ? 'bg-emerald-500/20 text-emerald-400' 
+                              : 'bg-gray-700 text-gray-300'
                         }`}>
                           {day.date.getDate()}
                         </div>
                         <div>
-                          <div className="text-white font-medium text-sm">Day {day.date.getDate()}</div>
+                          <div className={`font-medium ${
+                            day.date.toDateString() === new Date().toDateString() 
+                              ? 'text-cyan-300 text-base' : 'text-white text-sm'
+                          }`}>
+                            {day.date.toDateString() === new Date().toDateString() ? 'TODAY' : `Day ${day.date.getDate()}`}
+                          </div>
                           <div className="text-xs text-gray-400">
                             {day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                           </div>
