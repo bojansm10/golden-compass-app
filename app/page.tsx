@@ -215,9 +215,9 @@ const AddTradeForm = ({
       // Other forex pairs
       'EURGBP': 0.0001, 'AUDCAD': 0.0001, 'EURAUD': 0.0001, 'EURNZD': 0.0001,
       'GBPAUD': 0.0001, 'GBPNZD': 0.0001,
-      // Indices (typically 1 point = 1 pip)
-      'DJ30': 1, 'SPX500': 0.1, 'NAS100': 1, 'DAX40': 1,
-      'FTSE100': 1, 'NIK225': 1, 'ASX200': 1, 'HK50': 1,
+      // Indices (1 point = 10 pips, so 1 pip = 0.1 point)
+      'DJ30': 0.1, 'SPX500': 0.1, 'NAS100': 0.1, 'DAX40': 0.1,
+      'FTSE100': 0.1, 'NIK225': 0.1, 'ASX200': 0.1, 'HK50': 0.1,
       // Commodities
       'XAUUSD': 0.1,  // Gold: 1 pip = 0.1 price movement (3330 to 3331 = 10 pips)
       'XAGUSD': 0.01, // Silver: 1 pip = 0.01 price movement
@@ -509,8 +509,8 @@ const AddTradeForm = ({
               {formData.instrument === 'XAGUSD' && "Silver: 1 pip = $0.01 movement"}
               {['EURUSD', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURGBP', 'AUDCAD', 'EURAUD', 'EURNZD', 'GBPAUD', 'GBPNZD'].includes(formData.instrument) && "Forex: 1 pip = 0.0001 movement (4th decimal)"}
               {['USDJPY', 'EURJPY', 'GBPJPY', 'CADJPY', 'CHFJPY'].includes(formData.instrument) && "JPY pairs: 1 pip = 0.01 movement (2nd decimal)"}
-              {['DJ30', 'NAS100', 'DAX40', 'FTSE100', 'NIK225', 'ASX200', 'HK50'].includes(formData.instrument) && "Index: 1 pip = 1 point movement"}
-              {formData.instrument === 'SPX500' && "S&P 500: 1 pip = 0.1 point movement"}
+              {['DJ30', 'NAS100', 'DAX40', 'FTSE100', 'NIK225', 'ASX200', 'HK50'].includes(formData.instrument) && "Index: 1 point = 10 pips (0.1 point = 1 pip)"}
+              {formData.instrument === 'SPX500' && "S&P 500: 1 point = 10 pips (0.1 point = 1 pip)"}
               {['USOIL', 'UKOIL'].includes(formData.instrument) && "Oil: 1 pip = $0.01 movement"}
               {formData.instrument === 'NATGAS' && "Natural Gas: 1 pip = $0.001 movement"}
               {formData.instrument === 'COPPER' && "Copper: 1 pip = $0.0001 movement"}
