@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Activity, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Calendar, Target, Zap, DollarSign, Flame, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -21,9 +21,6 @@ interface TradingCalendarProps {
 const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
-  
-  const DAILY_PIP_TARGET = 80; // Daily pip target
   
   // Get the first day of the month
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -42,7 +39,7 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
     currentDate.setDate(currentDate.getDate() + 1);
   }
   
-  // Calculate daily P&L and pips for each day
+  // Calculate daily P&L for each day
   const getDayStats = (date: Date) => {
     const dayTrades = trades.filter(trade => {
       const tradeDate = new Date(trade.created_at);
@@ -50,15 +47,7 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
     });
     const totalPL = dayTrades.reduce((sum, trade) => sum + trade.profit, 0);
     const totalPips = dayTrades.reduce((sum, trade) => sum + (trade.pips || 0), 0);
-    return { totalPL, totalPips, trades: dayTrades };
-  };
-  
-  // Get trades for a specific day
-  const getDayTrades = (date: Date) => {
-    return trades.filter(trade => {
-      const tradeDate = new Date(trade.created_at);
-      return tradeDate.toDateString() === date.toDateString();
-    });
+    return { totalPL, totalPips, trades: dayTrades, count: dayTrades.length };
   };
   
   // Calculate monthly stats
@@ -70,12 +59,11 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
     });
     
     const totalPL = monthTrades.reduce((sum, trade) => sum + trade.profit, 0);
+    const totalPips = monthTrades.reduce((sum, trade) => sum + (trade.pips || 0), 0);
     const wins = monthTrades.filter(trade => trade.profit > 0).length;
-    const losses = monthTrades.filter(trade => trade.profit < 0).length;
-    const bestDay = Math.max(...monthTrades.map(t => t.profit), 0);
-    const worstDay = Math.min(...monthTrades.map(t => t.profit), 0);
+    const winRate = monthTrades.length > 0 ? (wins / monthTrades.length) * 100 : 0;
     
-    return { totalPL, wins, losses, total: monthTrades.length, bestDay, worstDay };
+    return { totalPL, totalPips, wins, total: monthTrades.length, winRate };
   };
   
   const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -92,397 +80,205 @@ const TradingCalendar: React.FC<TradingCalendarProps> = ({ trades }) => {
   const monthStats = getMonthlyStats();
   const today = new Date();
   const todayStats = getDayStats(today);
-  const pipProgress = Math.min((todayStats.totalPips / DAILY_PIP_TARGET) * 100, 100);
-  
-  // Motivational quotes for empty days
-  const motivationalQuotes = [
-    "Ready to trade",
-    "Opportunity awaits",
-    "Stay disciplined",
-    "Trust the process",
-    "Focus & execute",
-    "Risk managed",
-    "Stay patient",
-    "Market ready"
-  ];
-  
-  const getRandomQuote = (date: Date) => {
-    const seed = date.getDate() + date.getMonth();
-    return motivationalQuotes[seed % motivationalQuotes.length];
-  };
   
   return (
-    <div className="bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-black/90 rounded-3xl border border-gray-800 p-4 md:p-6 backdrop-blur-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-gray-900/60 rounded-2xl border border-gray-800 p-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl">
-            <Calendar size={24} className="text-cyan-400" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-white">Trading Calendar</h2>
-            <p className="text-sm text-gray-400">Track your daily progress towards 80 pips target</p>
-          </div>
+          <Calendar size={18} className="text-cyan-400" />
+          <h2 className="text-lg font-semibold text-white">Trading Calendar</h2>
         </div>
+        
+        {/* Month Navigation */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-all hover:scale-110"
+            className="p-1.5 hover:bg-gray-800 rounded-lg transition-all text-gray-400 hover:text-white"
           >
-            <ChevronLeft size={16} className="text-gray-400" />
+            <ChevronLeft size={16} />
           </button>
-          <span className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 min-w-[140px] text-center">
+          <span className="text-sm font-medium text-gray-300 min-w-[120px] text-center">
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </span>
           <button
             onClick={() => navigateMonth(1)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-all hover:scale-110"
+            className="p-1.5 hover:bg-gray-800 rounded-lg transition-all text-gray-400 hover:text-white"
           >
-            <ChevronRight size={16} className="text-gray-400" />
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
       
-      {/* Monthly Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-        <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-2xl p-4 border border-emerald-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingUp size={16} className="text-emerald-400" />
-            <span className="text-xs text-emerald-400 font-medium">PROFIT</span>
+      {/* Inline Monthly Stats - More Compact */}
+      <div className="flex items-center justify-between mb-4 p-3 bg-black/40 rounded-xl">
+        <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">Month P&L:</span>
+            <span className={`font-bold ${monthStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {monthStats.totalPL >= 0 ? '+' : ''}${Math.abs(monthStats.totalPL).toFixed(2)}
+            </span>
           </div>
-          <p className={`text-lg font-bold ${monthStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {monthStats.totalPL >= 0 ? '+' : ''}${Math.abs(monthStats.totalPL).toFixed(2)}
-          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">Trades:</span>
+            <span className="font-bold text-white">{monthStats.total}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">Win Rate:</span>
+            <span className="font-bold text-cyan-400">{monthStats.winRate.toFixed(0)}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">Pips:</span>
+            <span className="font-bold text-purple-400">{monthStats.totalPips.toFixed(0)}</span>
+          </div>
         </div>
         
-        <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl p-4 border border-blue-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <Activity size={16} className="text-blue-400" />
-            <span className="text-xs text-blue-400 font-medium">TRADES</span>
-          </div>
-          <p className="text-lg font-bold text-white">{monthStats.total}</p>
-        </div>
-        
-        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-4 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <Target size={16} className="text-purple-400" />
-            <span className="text-xs text-purple-400 font-medium">WIN RATE</span>
-          </div>
-          <p className="text-lg font-bold text-white">
-            {monthStats.total > 0 ? ((monthStats.wins / monthStats.total) * 100).toFixed(0) : 0}%
-          </p>
-        </div>
-        
-        <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-2xl p-4 border border-yellow-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <Zap size={16} className="text-yellow-400" />
-            <span className="text-xs text-yellow-400 font-medium">BEST DAY</span>
-          </div>
-          <p className="text-lg font-bold text-yellow-400">
-            ${monthStats.bestDay.toFixed(0)}
-          </p>
-        </div>
-        
-        <div className="bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-2xl p-4 border border-red-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingDown size={16} className="text-red-400" />
-            <span className="text-xs text-red-400 font-medium">WORST</span>
-          </div>
-          <p className="text-lg font-bold text-red-400">
-            ${Math.abs(monthStats.worstDay).toFixed(0)}
-          </p>
+        {/* Today's Quick Stats */}
+        <div className="flex items-center gap-3 text-sm">
+          <div className="h-6 w-px bg-gray-700"></div>
+          <span className="text-gray-400">Today:</span>
+          <span className={`font-bold ${todayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {todayStats.totalPL >= 0 ? '+' : ''}${Math.abs(todayStats.totalPL).toFixed(2)}
+          </span>
         </div>
       </div>
       
-      {/* Calendar Grid */}
-      <div className="relative">
-        {/* Background pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 rounded-2xl"></div>
-        
-        <div className="relative grid grid-cols-7 gap-1">
-          {/* Day headers */}
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+      {/* Compact Calendar Grid */}
+      <div className="bg-black/20 rounded-xl p-3">
+        <div className="grid grid-cols-7 gap-1">
+          {/* Day headers - smaller */}
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
             <div 
               key={day} 
-              className={`text-center text-xs py-3 font-medium ${
-                index === 0 || index === 6 
-                  ? 'text-purple-400' 
-                  : 'text-gray-400'
-              }`}
+              className="text-center text-xs py-2 text-gray-500 font-medium"
             >
               {day}
             </div>
           ))}
           
-          {/* Calendar days */}
+          {/* Calendar days - more compact */}
           {calendarDays.map((date, index) => {
             const dayStats = getDayStats(date);
-            const dayTrades = dayStats.trades;
             const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
             const isToday = date.toDateString() === today.toDateString();
             const isSelected = selectedDate?.toDateString() === date.toDateString();
-            const isHovered = hoveredDate?.toDateString() === date.toDateString();
-            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-            const hasTrades = dayTrades.length > 0;
+            const hasTrades = dayStats.count > 0;
             
-            // Special rendering for today
-            if (isToday && isCurrentMonth) {
-              return (
-                <div
-                  key={index}
-                  onClick={() => dayTrades.length > 0 && setSelectedDate(date)}
-                  className={`
-                    relative group rounded-2xl border-2 transition-all duration-300 overflow-hidden
-                    col-span-2 row-span-2 min-h-[140px]
-                    bg-gradient-to-br from-cyan-900/30 via-blue-900/20 to-indigo-900/30
-                    border-cyan-400/50 shadow-xl shadow-cyan-500/20
-                    ${hasTrades ? 'cursor-pointer hover:scale-[1.02]' : ''}
-                    ${isSelected ? 'ring-2 ring-cyan-400/50' : ''}
-                  `}
-                >
-                  {/* Today header */}
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-sm p-2 border-b border-cyan-500/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-cyan-400">TODAY</span>
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                      </div>
-                      <span className="text-xs text-gray-400">{date.getDate()}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Target Progress */}
-                  <div className="pt-10 px-3 pb-3">
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <Target size={12} />
-                          Daily Target
-                        </span>
-                        <span className="text-xs font-bold text-cyan-400">
-                          {todayStats.totalPips.toFixed(0)}/{DAILY_PIP_TARGET} pips
-                        </span>
-                      </div>
-                      
-                      {/* Progress bar */}
-                      <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full transition-all duration-500 rounded-full ${
-                            pipProgress >= 100 
-                              ? 'bg-gradient-to-r from-emerald-400 to-green-500' 
-                              : pipProgress >= 50
-                                ? 'bg-gradient-to-r from-yellow-400 to-orange-500'
-                                : 'bg-gradient-to-r from-red-400 to-pink-500'
-                          }`}
-                          style={{width: `${pipProgress}%`}}
-                        ></div>
-                      </div>
-                      
-                      {/* Achievement status */}
-                      <div className="mt-1 text-center">
-                        {pipProgress >= 100 ? (
-                          <div className="flex items-center justify-center gap-1 text-emerald-400">
-                            <Trophy size={14} />
-                            <span className="text-xs font-bold">TARGET ACHIEVED!</span>
-                          </div>
-                        ) : pipProgress > 0 ? (
-                          <span className="text-xs text-gray-400">
-                            {(DAILY_PIP_TARGET - todayStats.totalPips).toFixed(0)} pips to go
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-500 italic">
-                            Start trading to hit target
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* P&L Display */}
-                    {hasTrades && (
-                      <div className="mt-3 pt-3 border-t border-gray-800">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-400">P&L</span>
-                          <span className={`text-lg font-bold ${
-                            dayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
-                          }`}>
-                            {dayStats.totalPL >= 0 ? '+' : ''}${Math.abs(dayStats.totalPL).toFixed(2)}
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {dayTrades.length} trade{dayTrades.length > 1 ? 's' : ''} today
-                        </span>
-                      </div>
-                    )}
-                    
-                    {!hasTrades && (
-                      <div className="mt-3 text-center">
-                        <Flame size={20} className="mx-auto text-orange-400 mb-1 animate-pulse" />
-                        <p className="text-xs text-gray-400 italic">
-                          Ready to conquer the market!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            }
-            
-            // Skip rendering the grid cell that would overlap with today's expanded cell
-            const todayIndex = calendarDays.findIndex(d => d.toDateString() === today.toDateString());
-            const skipIndices = [];
-            if (todayIndex !== -1 && today.getMonth() === currentMonth.getMonth()) {
-              skipIndices.push(todayIndex + 1); // Right cell
-              skipIndices.push(todayIndex + 7); // Bottom cell
-              skipIndices.push(todayIndex + 8); // Bottom-right cell
-            }
-            
-            if (skipIndices.includes(index)) {
-              return <div key={index}></div>;
-            }
-            
-            // Regular day rendering
             return (
               <div
                 key={index}
-                onClick={() => dayTrades.length > 0 && setSelectedDate(date)}
-                onMouseEnter={() => setHoveredDate(date)}
-                onMouseLeave={() => setHoveredDate(null)}
+                onClick={() => {
+                  if (hasTrades) {
+                    setSelectedDate(isSelected ? null : date);
+                  }
+                }}
                 className={`
-                  relative group rounded-xl border transition-all duration-300 min-h-[60px] overflow-hidden
-                  ${isCurrentMonth 
-                    ? hasTrades 
-                      ? 'bg-gradient-to-br from-gray-900/90 to-black/90' 
-                      : 'bg-gradient-to-br from-gray-900/40 to-gray-800/40'
-                    : 'bg-gray-900/20'
-                  }
-                  ${hasTrades
-                    ? dayStats.totalPL >= 0
-                      ? 'border-emerald-500/30 hover:border-emerald-400/50'
-                      : 'border-red-500/30 hover:border-red-400/50'
-                    : 'border-gray-800/50 hover:border-gray-700'
-                  }
-                  ${isSelected ? 'ring-2 ring-cyan-400/50 border-cyan-400' : ''}
-                  ${hasTrades ? 'cursor-pointer hover:scale-[1.02]' : ''}
-                  ${isHovered && !hasTrades ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60' : ''}
+                  relative aspect-square flex flex-col items-center justify-center rounded-lg
+                  transition-all cursor-pointer text-sm
+                  ${!isCurrentMonth ? 'opacity-30' : ''}
+                  ${isToday ? 'ring-2 ring-cyan-500/50 bg-cyan-500/10' : ''}
+                  ${isSelected ? 'bg-gray-800 ring-2 ring-gray-700' : ''}
+                  ${hasTrades && !isSelected && !isToday ? 'hover:bg-gray-800/50' : ''}
+                  ${!hasTrades && isCurrentMonth && !isToday ? 'text-gray-600' : ''}
                 `}
               >
                 {/* Date number */}
-                <div className={`absolute top-1 left-2 text-xs font-medium ${
-                  isCurrentMonth 
-                    ? isWeekend 
-                      ? 'text-purple-400' 
-                      : 'text-gray-300'
-                    : 'text-gray-600'
-                }`}>
+                <div className={`text-xs ${isToday ? 'font-bold text-cyan-400' : 'text-gray-400'}`}>
                   {date.getDate()}
                 </div>
                 
-                {hasTrades ? (
+                {/* Compact trade indicator */}
+                {hasTrades && (
                   <>
-                    {/* Trade indicator dot */}
-                    <div className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
+                    <div className={`text-xs font-bold mt-0.5 ${
+                      dayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    }`}>
+                      {dayStats.totalPL >= 0 ? '+' : ''}{Math.abs(dayStats.totalPL) >= 100 
+                        ? `${(dayStats.totalPL / 1000).toFixed(1)}k` 
+                        : dayStats.totalPL.toFixed(0)
+                      }
+                    </div>
+                    {/* Small dot indicator */}
+                    <div className={`absolute bottom-1 w-1 h-1 rounded-full ${
                       dayStats.totalPL >= 0 ? 'bg-emerald-400' : 'bg-red-400'
                     }`}></div>
-                    
-                    {/* P&L display */}
-                    <div className="absolute bottom-1 left-2 right-1">
-                      <div className={`text-xs font-bold ${
-                        dayStats.totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
-                      }`}>
-                        {dayStats.totalPL >= 0 ? '+' : ''}${Math.abs(dayStats.totalPL).toFixed(0)}
-                      </div>
-                      <div className="text-[10px] text-gray-500">
-                        {dayTrades.length}t
-                      </div>
-                    </div>
                   </>
-                ) : isCurrentMonth ? (
-                  <>
-                    {/* Empty day content */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="text-center px-1">
-                        <p className="text-[10px] text-gray-500 italic">
-                          {getRandomQuote(date)}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                ) : null}
+                )}
               </div>
             );
           })}
         </div>
       </div>
       
-      {/* Selected Day Details */}
-      {selectedDate && getDayTrades(selectedDate).length > 0 && (
-        <div className="mt-6 p-4 bg-gradient-to-br from-gray-900/90 to-black/90 rounded-2xl border border-cyan-500/20 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Calendar size={16} className="text-cyan-400" />
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+      {/* Selected Day Details - Compact Dropdown */}
+      {selectedDate && getDayStats(selectedDate).count > 0 && (
+        <div className="mt-3 p-3 bg-black/40 rounded-xl border border-gray-800">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-300">
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </h3>
             <button
-              onClick={() => setSelectedDate(null)}
-              className="text-sm text-gray-400 hover:text-white transition-colors px-3 py-1 hover:bg-gray-800 rounded-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedDate(null);
+              }}
+              className="text-xs text-gray-500 hover:text-gray-300"
             >
-              ✕ Close
+              ✕
             </button>
           </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {getDayTrades(selectedDate).map((trade) => (
-              <div key={trade.id} className="flex items-center justify-between p-3 bg-black/40 rounded-xl hover:bg-black/60 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-8 rounded-full ${trade.profit >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">{trade.instrument}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        trade.type === 'BUY' 
-                          ? 'bg-emerald-500/20 text-emerald-400' 
-                          : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {trade.type}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500">{trade.instructor}</span>
-                  </div>
+          
+          {/* Compact trade list */}
+          <div className="space-y-1.5 max-h-32 overflow-y-auto">
+            {getDayStats(selectedDate).trades.map((trade) => (
+              <div key={trade.id} className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <div className={`w-1 h-4 rounded-full ${
+                    trade.profit >= 0 ? 'bg-emerald-400' : 'bg-red-400'
+                  }`}></div>
+                  <span className="text-xs text-gray-300">{trade.instrument}</span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    trade.type === 'BUY' 
+                      ? 'bg-emerald-500/20 text-emerald-400' 
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {trade.type}
+                  </span>
                 </div>
-                <span className={`font-bold ${trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-xs font-medium ${
+                  trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'
+                }`}>
                   {trade.profit >= 0 ? '+' : ''}${trade.profit.toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
-            <span className="text-sm text-gray-400">Day Total:</span>
-            <div className="text-right">
-              <span className={`text-lg font-bold block ${getDayStats(selectedDate).totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {getDayStats(selectedDate).totalPL >= 0 ? '+' : ''}${Math.abs(getDayStats(selectedDate).totalPL).toFixed(2)}
-              </span>
-              <span className="text-xs text-gray-500">{getDayStats(selectedDate).totalPips.toFixed(0)} pips</span>
-            </div>
+          
+          {/* Day total */}
+          <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-800">
+            <span className="text-xs text-gray-400">Day Total:</span>
+            <span className={`text-sm font-bold ${
+              getDayStats(selectedDate).totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'
+            }`}>
+              {getDayStats(selectedDate).totalPL >= 0 ? '+' : ''}${Math.abs(getDayStats(selectedDate).totalPL).toFixed(2)}
+            </span>
           </div>
         </div>
       )}
       
-      {/* Legend */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-emerald-400 rounded-full"></div>
-          <span className="text-gray-400">Profit Day</span>
+      {/* Minimal Legend */}
+      <div className="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+          <span>Profit</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-          <span className="text-gray-400">Loss Day</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+          <span>Loss</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 border-2 border-cyan-400 rounded-full"></div>
-          <span className="text-gray-400">Today</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-gray-700 rounded-full"></div>
-          <span className="text-gray-400">No Trades</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 ring-2 ring-cyan-500/50 rounded-full"></div>
+          <span>Today</span>
         </div>
       </div>
     </div>
