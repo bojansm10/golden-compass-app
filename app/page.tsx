@@ -1236,7 +1236,9 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
           </div>
         </div>
-        
+        <div className="mb-6">
+          <TradingCalendar trades={trades} />
+        </div>
         {/* Main Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {/* Capital Card */}
