@@ -60,14 +60,13 @@ export async function POST(request: NextRequest) {
           entry_price: trade.entry_price || 0,
           exit_price: trade.exit_price || 0,
           pips: trade.pips || 0,
-          instructor: trade.comment || 'MT5 Import', // Use comment field for instructor
-          custom_instructor: 'MT5 Import'
+          instructor: trade.comment || 'MT5 Import' // Use comment field for instructor
         });
       
       if (tradeError) {
         console.error('Error saving trade:', tradeError);
         return NextResponse.json(
-          { error: 'Failed to save trade' },
+          { error: 'Failed to save trade', details: tradeError.message },
           { status: 500 }
         );
       }
