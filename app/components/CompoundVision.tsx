@@ -55,6 +55,10 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     ).size;
     const avgDailyProfit = uniqueDays > 0 ? totalProfit / uniqueDays : 0;
 
+    // Calculate ACTUAL average daily pips from real trades (not reverse-calculated)
+    const totalPips = trades.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+    const avgDailyPips = uniqueDays > 0 ? totalPips / uniqueDays : 0;
+
     // Daily risk limit
     const dailyLimit = capital * (riskPercent / 100);
 
@@ -65,18 +69,19 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       totalProfit: Math.round(totalProfit * 100) / 100,
       winRate: Math.round(winRate),
       avgDailyProfit: Math.round(avgDailyProfit * 100) / 100,
+      avgDailyPips: Math.round(avgDailyPips * 10) / 10, // Add real pips tracking
       dailyLimit,
       tradingDays: uniqueDays,
       totalTrades: trades.length
     };
   }, [trades, capital, compoundingPercent, riskPercent]);
 
-  // Project future compound growth using app's logic
+  // Project future compound growth using REALISTIC logic
   const projections = useMemo(() => {
-    const { avgDailyProfit, winRate, tradingDays } = currentState;
+    const { avgDailyProfit, winRate, tradingDays, avgDailyPips } = currentState;
     
     // Ensure we have valid starting values
-    if (currentState.available <= 0 || !avgDailyProfit || avgDailyProfit <= 0) {
+    if (currentState.available <= 0) {
       return [
         { label: '1 Month', days: 22, icon: '🎯', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 },
         { label: '6 Months', days: 132, icon: '🚀', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 },
@@ -85,10 +90,20 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       ];
     }
     
-    // Calculate user's average daily pips from their actual performance
-    const currentLotSize = currentState.available / 100 * 0.01; // Current lot size based on available capital
-    const avgDailyPips = currentLotSize > 0 ? avgDailyProfit / currentLotSize : 80; // Fallback to 80 pips
-    const winRateDecimal = Math.max(winRate / 100, 0.75); // Minimum 75% for projections
+    // Use REALISTIC pips values with proper caps
+    let dailyPipsTarget;
+    if (tradingDays >= 5 && avgDailyPips > 0) {
+      // Use actual performance but cap at realistic levels
+      dailyPipsTarget = Math.min(Math.max(avgDailyPips, 10), 150); // Min 10, max 150 pips/day
+    } else {
+      // Conservative fallback for new traders
+      dailyPipsTarget = 30; // 30 pips/day is reasonable
+    }
+    
+    const winRateDecimal = Math.max(winRate / 100, 0.65); // Minimum 65% for projections
+    
+    // Calculate pip value based on instrument type (simplified)
+    const pipValue = 10; // $10 per pip per lot for major forex pairs (standard assumption)
 
     const timeframes = [
       { label: '1 Month', days: 22, icon: '🎯' },
@@ -103,20 +118,28 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       let totalProfitGenerated = 0;
       
       for (let day = 1; day <= tf.days; day++) {
-        // Calculate lot size based on current available capital (like your spreadsheet)
-        const lotSize = available / 100 * 0.01; // 0.01 lot per $100 available
+        // Calculate lot size with REALISTIC caps
+        const maxLotSize = Math.min(available / 1000, 50); // Max 50 lots, or 1 lot per $1000
+        const lotSize = Math.max(0.01, maxLotSize); // Min 0.01 lot
         
-        // Calculate daily profit: same pips × current lot size (exactly like spreadsheet)
+        // Calculate daily profit with REALISTIC limits
         let dailyProfit;
         if (Math.random() < winRateDecimal) {
-          // Winning day: user's avg pips × current lot size
-          dailyProfit = avgDailyPips * lotSize;
+          // Winning day: target pips × pip value × lot size
+          const actualPips = dailyPipsTarget * (0.7 + Math.random() * 0.6); // 70-130% of target
+          dailyProfit = actualPips * pipValue * lotSize;
         } else {
-          // Losing day: negative pips
-          dailyProfit = -(avgDailyPips * 0.3) * lotSize; // 30% loss of avg pips
+          // Losing day: smaller loss
+          const lossPips = dailyPipsTarget * 0.4; // 40% of target as loss
+          dailyProfit = -lossPips * pipValue * lotSize;
         }
         
-        // Add profit to available capital (like your spreadsheet: next day capital = prev + profit)
+        // Cap daily profit to prevent unrealistic gains
+        const maxDailyGain = available * 0.1; // Max 10% gain per day
+        const maxDailyLoss = available * 0.05; // Max 5% loss per day
+        dailyProfit = Math.max(-maxDailyLoss, Math.min(maxDailyGain, dailyProfit));
+        
+        // Add profit to available capital
         available += dailyProfit;
         totalProfitGenerated += dailyProfit;
         
@@ -129,6 +152,13 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
         
         // Ensure available doesn't go below minimum
         available = Math.max(available, currentState.available * 0.1);
+        
+        // Add some market reality - occasional larger drawdowns
+        if (day % 30 === 0 && Math.random() < 0.3) {
+          const drawdown = available * 0.02; // 2% monthly drawdown possibility
+          available -= drawdown;
+          totalProfitGenerated -= drawdown;
+        }
       }
 
       const totalValue = available + saved;
@@ -167,49 +197,46 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     const points = [];
     let available = currentState.available;
     let saved = currentState.saved;
-    const { avgDailyProfit, winRate, tradingDays } = currentState;
     
-    // Use THEIR actual performance for chart too
-    let dailyProfitBase;
-    let successRate;
+    // Use realistic projection logic for chart too
+    const dailyPipsTarget = currentState.tradingDays >= 5 && currentState.avgDailyPips > 0 
+      ? Math.min(Math.max(currentState.avgDailyPips, 10), 150)
+      : 30;
     
-    if (tradingDays >= 5) {
-      dailyProfitBase = Math.abs(avgDailyProfit);
-      successRate = winRate / 100;
-    } else {
-      dailyProfitBase = currentState.dailyLimit * 0.3;
-      successRate = 0.7;
-    }
+    const pipValue = 10;
+    const successRate = Math.max(currentState.winRate / 100, 0.65);
 
     for (let month = 0; month <= 12; month++) {
       if (month > 0) {
         const daysInMonth = 22; // Trading days
-        let monthlyDailyProfit = dailyProfitBase;
         
         for (let day = 0; day < daysInMonth; day++) {
-          const currentLotSize = available / 100 * 0.01;
-          const pipsToProfit = monthlyDailyProfit / (currentState.available / 100 * 0.01 || 0.01);
-          const scaledDailyProfit = pipsToProfit * currentLotSize;
+          const maxLotSize = Math.min(available / 1000, 50);
+          const lotSize = Math.max(0.01, maxLotSize);
           
           let dailyProfit;
           if (Math.random() < successRate) {
-            dailyProfit = scaledDailyProfit;
+            const actualPips = dailyPipsTarget * (0.7 + Math.random() * 0.6);
+            dailyProfit = actualPips * pipValue * lotSize;
           } else {
-            dailyProfit = -scaledDailyProfit * 0.4;
+            const lossPips = dailyPipsTarget * 0.4;
+            dailyProfit = -lossPips * pipValue * lotSize;
           }
+          
+          // Apply caps
+          const maxDailyGain = available * 0.1;
+          const maxDailyLoss = available * 0.05;
+          dailyProfit = Math.max(-maxDailyLoss, Math.min(maxDailyGain, dailyProfit));
           
           available += dailyProfit;
           
-          // Apply USER'S compounding preference
           if (dailyProfit > 0) {
             const toSave = dailyProfit * (compoundingPercent / 100);
-            available -= toSave;  // This portion is saved and not available for trading
+            available -= toSave;
             saved += toSave;
-            
-            // Update next day's earning potential based on new available capital
-            const newLotSize = available / 100 * 0.01;
-            monthlyDailyProfit = pipsToProfit * newLotSize;
           }
+          
+          available = Math.max(available, currentState.available * 0.1);
         }
       }
       
@@ -381,17 +408,14 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
           {/* Performance Insights */}
           <div className="bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 border border-cyan-500/30 rounded-2xl p-6">
             <h4 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-4">
-              The Power of Your System
+              The Power of Your System (Realistic)
             </h4>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-300">Your Avg Daily Pips:</span>
                   <span className="text-cyan-400 font-semibold">
-                    {currentState.avgDailyProfit && currentState.available > 0 ? 
-                      Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10 : 
-                      'Building baseline...'
-                    }
+                    {currentState.avgDailyPips > 0 ? currentState.avgDailyPips.toFixed(1) : 'Building baseline...'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -403,7 +427,7 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
                 <div className="flex justify-between">
                   <span className="text-gray-300">Current Position Size:</span>
                   <span className="text-green-400 font-semibold">
-                    {((currentState.available / 100) * 0.01).toFixed(2)} lots max
+                    {Math.min(((currentState.available / 1000)), 50).toFixed(2)} lots max
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -425,12 +449,12 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
                 {currentState.tradingDays >= 5 ? (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Your proven system:</span> Averaging {Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10} pips daily 
-                      with your current {((currentState.available / 100) * 0.01).toFixed(2)} lot size = ${currentState.avgDailyProfit?.toFixed(2)} daily profit.
+                      <span className="text-cyan-400 font-semibold">Your proven system:</span> Averaging {currentState.avgDailyPips.toFixed(1)} pips daily 
+                      with realistic position sizing = ${currentState.avgDailyProfit?.toFixed(2)} daily profit.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-green-400 font-semibold">Compounding magic:</span> More capital = bigger lot size. 
-                      Same {Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10} pips × bigger lots = exponentially growing profits.
+                      <span className="text-green-400 font-semibold">Realistic compounding:</span> More capital = bigger (but capped) lot sizes. 
+                      Consistent pips with proper risk management = sustainable growth.
                     </p>
                     <p className="text-gray-300 text-sm">
                       <span className="text-purple-400 font-semibold">Your {compoundingPercent}% rule:</span> Each day's profit grows your trading power 
@@ -440,16 +464,16 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
                 ) : (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Building your system:</span> Once you establish consistent pips performance, 
-                      the compounding effect scales your profits through larger position sizes.
+                      <span className="text-cyan-400 font-semibold">Building your system:</span> Projections use conservative 30 pips/day average.
+                      Your actual performance will calibrate these estimates.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-green-400 font-semibold">The formula:</span> Same daily pips × growing lot size (from more capital) = 
-                      exponential profit growth with your {compoundingPercent}% compounding rate.
+                      <span className="text-green-400 font-semibold">The formula:</span> Consistent daily pips × proper position sizing × 
+                      disciplined compounding = sustainable wealth growth.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-purple-400 font-semibold">Stay disciplined:</span> Consistent pips are the key. The compounding 
-                      will handle the wealth building automatically as your capital grows.
+                      <span className="text-purple-400 font-semibold">Stay realistic:</span> These projections include realistic limits, 
+                      drawdowns, and risk management - not fantasy hockey-stick growth.
                     </p>
                   </>
                 )}
@@ -459,11 +483,18 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
             {currentState.totalTrades < 10 && (
               <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                 <p className="text-blue-400 text-sm text-center">
-                  💡 <strong>Need more data:</strong> Projections will be based on YOUR actual performance once you complete 10+ trades. 
-                  Current estimates use your {currentState.totalTrades} trades + conservative assumptions.
+                  💡 <strong>Realistic projections:</strong> This version uses actual pips data and realistic caps. 
+                  Current estimates use conservative assumptions until you complete more trades.
                 </p>
               </div>
             )}
+            
+            <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+              <p className="text-green-400 text-sm text-center">
+                ✅ <strong>Fixed:</strong> Projections now use actual pips from your trades, realistic lot size caps (max 50), 
+                daily profit limits (max 10% gain/5% loss), and include market drawdowns for realistic forecasting.
+              </p>
+            </div>
           </div>
         </div>
       </div>
