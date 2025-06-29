@@ -3,6 +3,7 @@
 import MotivationalQuote from './components/MotivationalQuote';
 import AccountHealthMonitor from './components/AccountHealthMonitor';
 import SupportTicketModal from './components/SupportTicketModal';
+import CompoundVision from './components/CompoundVision'; // NEW IMPORT
 import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Plus, X, DollarSign, TrendingUp, AlertTriangle, Award, Clock, Activity, Users, Zap, Shield, Target, BarChart3, Sparkles, ChevronUp, ChevronDown, Brain, Flame, Settings, ArrowRight, Eye, EyeOff, Mail, Lock, User, LogOut } from 'lucide-react';
@@ -25,6 +26,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   const [showCompoundingEdit, setShowCompoundingEdit] = useState(false);
   const [showQuickSettings, setShowQuickSettings] = useState(false);
   const [showSupportTicket, setShowSupportTicket] = useState(false);
+  const [showCompoundVision, setShowCompoundVision] = useState(true); // NEW STATE FOR COMPOUND VISION
   const [loading, setLoading] = useState(true);
   
   // Helper function to get user ID consistently
@@ -281,6 +283,19 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
             </div>
             <div className="w-full md:w-auto md:text-right">
               <div className="flex flex-wrap items-center gap-2 mb-2">
+                {/* NEW: Compound Vision Toggle Button */}
+                <button
+                  onClick={() => setShowCompoundVision(!showCompoundVision)}
+                  className={`flex items-center gap-1 md:gap-2 text-xs px-2 md:px-3 py-1 rounded-full transition-all ${
+                    showCompoundVision 
+                      ? 'bg-purple-600 hover:bg-purple-500 text-white' 
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span>💎</span>
+                  <span className="hidden sm:inline">Wealth Vision</span>
+                </button>
+                
                 <button
                   onClick={() => setShowQuickSettings(!showQuickSettings)}
                   className="flex items-center gap-1 md:gap-2 text-xs px-2 md:px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all"
@@ -393,6 +408,18 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           capital={capital}
           todayPL={todayPL}
         />
+        
+        {/* NEW: Compound Vision Section - Strategically placed for maximum motivational impact */}
+        {showCompoundVision && (
+          <div className="mb-6">
+            <CompoundVision 
+              trades={trades}
+              capital={capital}
+              compoundingPercent={compoundingPercent}
+              riskPercent={riskPercent}
+            />
+          </div>
+        )}
         
         {/* Add Trade Button */}
         <div className="mb-6 flex justify-center">
