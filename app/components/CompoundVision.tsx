@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Target, Star, Zap, DollarSign, Shield, Calendar } from 'lucide-react';
+import { TrendingUp, Target, Star, Zap, DollarSign, Shield } from 'lucide-react';
 
 interface Trade {
   profit: number;
@@ -131,9 +130,22 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     });
   }, [currentState, compoundingPercent]);
 
-  // Generate chart data for 12-month projection
-  const chartData = useMemo(() => {
-    const data = [];
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}K`;
+    return `$${amount.toLocaleString()}`;
+  };
+
+  const getMotivationalMessage = () => {
+    if (currentState.winRate >= 80) return "🔥 Elite performance! Your discipline is paying off!";
+    if (currentState.winRate >= 70) return "💪 Strong consistency! Keep the momentum going!";
+    if (currentState.winRate >= 60) return "⚡ Good foundation! Small improvements = big results!";
+    return "🎯 Every journey starts with one step. Build your winning streak!";
+  };
+
+  // Generate visual growth chart data points for CSS animation
+  const chartPoints = useMemo(() => {
+    const points = [];
     let available = currentState.available;
     let saved = currentState.saved;
     const { avgDailyProfit, winRate } = currentState;
@@ -141,9 +153,10 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     const projectedDailyProfit = avgDailyProfit || Math.max(currentState.dailyLimit * 0.3, 25);
     const adjustedDailyProfit = projectedDailyProfit * Math.max(winRate / 100, 0.6);
 
-    for (let day = 0; day <= 365; day += 10) {
-      if (day > 0) {
-        for (let i = 0; i < 10; i++) {
+    for (let month = 0; month <= 12; month++) {
+      if (month > 0) {
+        const daysInMonth = 22; // Trading days
+        for (let i = 0; i < daysInMonth; i++) {
           const maxLotSize = available / 100 * 0.01;
           const positionMultiplier = Math.max(maxLotSize / 0.1, 0.5);
           const dailyProfit = adjustedDailyProfit * positionMultiplier;
@@ -158,30 +171,20 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
         }
       }
       
-      data.push({
-        day,
-        month: Math.round(day / 30.44 * 10) / 10,
+      const totalValue = available + saved;
+      const maxValue = projections[2]?.totalValue || totalValue * 2; // Use 1-year projection or estimate
+      const heightPercent = Math.min((totalValue / maxValue) * 100, 100);
+      
+      points.push({
+        month,
+        totalValue: Math.round(totalValue),
+        heightPercent,
         available: Math.round(available),
-        saved: Math.round(saved),
-        totalValue: Math.round(available + saved),
-        positionSize: Math.round((available / 100 * 0.01) * 100) / 100
+        saved: Math.round(saved)
       });
     }
-    return data;
-  }, [currentState, compoundingPercent]);
-
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}K`;
-    return `$${amount.toLocaleString()}`;
-  };
-
-  const getMotivationalMessage = () => {
-    if (currentState.winRate >= 80) return "🔥 Elite performance! Your discipline is paying off!";
-    if (currentState.winRate >= 70) return "💪 Strong consistency! Keep the momentum going!";
-    if (currentState.winRate >= 60) return "⚡ Good foundation! Small improvements = big results!";
-    return "🎯 Every journey starts with one step. Build your winning streak!";
-  };
+    return points;
+  }, [currentState, compoundingPercent, projections]);
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white p-8 rounded-3xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/10">
@@ -285,60 +288,52 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
         <div className="lg:col-span-3">
           <h3 className="text-2xl font-bold text-cyan-400 mb-6">Your Compound Journey</h3>
           
+          {/* Custom Chart Alternative */}
           <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-cyan-500/20 rounded-2xl p-6 mb-6">
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="#9CA3AF"
-                    label={{ value: 'Months', position: 'insideBottom', offset: -5 }}
-                  />
-                  <YAxis stroke="#9CA3AF" tickFormatter={formatCurrency} />
-                  <Tooltip 
-                    formatter={(value: any, name: any) => [
-                      formatCurrency(value), 
-                      name === 'totalValue' ? 'Total Portfolio' :
-                      name === 'available' ? 'Available Trading' : 'Compound Savings'
-                    ]}
-                    labelFormatter={(month: any) => `Month ${month}`}
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #06B6D4',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 30px rgba(6, 182, 212, 0.3)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="totalValue" 
-                    stroke="#10B981"
-                    strokeWidth={4}
-                    dot={false}
-                    name="totalValue"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="available" 
-                    stroke="#06B6D4"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                    name="available"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="saved" 
-                    stroke="#8B5CF6"
-                    strokeWidth={2}
-                    strokeDasharray="3 3"
-                    dot={false}
-                    name="saved"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-80 relative">
+              {/* Chart Background */}
+              <div className="absolute inset-0 flex items-end justify-between px-4 pb-4">
+                {chartPoints.map((point, index) => (
+                  <div key={index} className="flex flex-col items-center relative group">
+                    {/* Bar */}
+                    <div 
+                      className="w-6 bg-gradient-to-t from-green-500 to-cyan-400 rounded-t-lg transition-all duration-1000 ease-out hover:from-green-400 hover:to-cyan-300"
+                      style={{ 
+                        height: `${point.heightPercent}%`,
+                        minHeight: '4px',
+                        animationDelay: `${index * 100}ms`
+                      }}
+                    ></div>
+                    
+                    {/* Month Label */}
+                    <span className="text-xs text-gray-400 mt-2">{point.month}M</span>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-cyan-500/30">
+                      <div className="text-center">
+                        <p className="font-bold text-green-400">{formatCurrency(point.totalValue)}</p>
+                        <p className="text-gray-300">Month {point.month}</p>
+                        <p className="text-xs text-cyan-400">Trading: {formatCurrency(point.available)}</p>
+                        <p className="text-xs text-purple-400">Saved: {formatCurrency(point.saved)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Y-axis labels */}
+              <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-400 py-4">
+                <span>{formatCurrency(projections[2]?.totalValue || currentState.totalValue * 2)}</span>
+                <span>{formatCurrency((projections[2]?.totalValue || currentState.totalValue * 2) * 0.5)}</span>
+                <span>$0</span>
+              </div>
+              
+              {/* X-axis */}
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-600"></div>
             </div>
+            <p className="text-center text-sm text-gray-400 mt-4">
+              Hover over bars to see monthly projections
+            </p>
           </div>
 
           {/* Performance Insights */}
