@@ -70,15 +70,21 @@ const AddTradeForm: React.FC<AddTradeFormProps> = ({
     return pipSizes[instrument] || 0.0001; // Default to forex standard
   };
   
-  // Instructor options
+  // Updated instructor options
   const instructors = [
-    'ICT (Inner Circle Trader)',
-    'Smart Money Concepts',
-    'Wyckoff Method',
-    'Elliott Wave',
-    'Volume Profile',
-    'Custom Strategy',
-    'Other'
+    'Kristijan',
+    'Abdallah',
+    'Ploutos',
+    'Edris',
+    'Dev Satnam',
+    'Ricardo',
+    'Gold Empire',
+    'Diego',
+    'Matteo Vitti',
+    'Filipe',
+    'Jessica',
+    'Bojan',
+    'Other (manually specify)'
   ];
   
   // Instrument options
@@ -113,7 +119,7 @@ const AddTradeForm: React.FC<AddTradeFormProps> = ({
   const calculatedPips = calculatePips();
   
   const handleSubmit = async () => {
-    const instructorName = formData.instructor === 'Other' ? 
+    const instructorName = formData.instructor === 'Other (manually specify)' ? 
       formData.customInstructor : formData.instructor;
     
     if (!instructorName || !formData.profit) {
@@ -195,7 +201,7 @@ const AddTradeForm: React.FC<AddTradeFormProps> = ({
           {/* Instructor Selection */}
           <div>
             <label className="block text-sm font-medium text-cyan-400 mb-2">Instructor</label>
-            {formData.instructor === 'Other' ? (
+            {formData.instructor === 'Other (manually specify)' ? (
               <input
                 type="text"
                 placeholder="Enter custom instructor name"
