@@ -75,19 +75,20 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
   const projections = useMemo(() => {
     const { avgDailyProfit, winRate, tradingDays } = currentState;
     
-    // If user has trading history, use THEIR performance. If not, use conservative estimate
-    let dailyProfitBase;
-    let successRate;
-    
-    if (tradingDays >= 3) {
-      // User has real trading data - USE IT!
-      dailyProfitBase = Math.abs(avgDailyProfit); // Use their actual average
-      successRate = Math.max(winRate / 100, 0.8); // Use their win rate, minimum 80%
-    } else {
-      // New user - use starter estimates
-      dailyProfitBase = currentState.dailyLimit * 0.4; // 40% of risk as potential daily profit
-      successRate = 0.75; // Assume 75% win rate for new users
+    // Ensure we have valid starting values
+    if (currentState.available <= 0 || !avgDailyProfit || avgDailyProfit <= 0) {
+      return [
+        { label: '1 Month', days: 22, icon: '🎯', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 },
+        { label: '6 Months', days: 132, icon: '🚀', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 },
+        { label: '1 Year', days: 250, icon: '💎', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 },
+        { label: '5 Years', days: 1250, icon: '👑', available: currentState.available, saved: currentState.saved, totalValue: currentState.totalValue, growth: 0, multiplier: 1, totalProfit: 0 }
+      ];
     }
+    
+    // Use THEIR actual daily profit
+    const dailyProfitBase = Math.abs(avgDailyProfit);
+    const originalAvailable = currentState.available;
+    const winRateDecimal = Math.max(winRate / 100, 0.75); // Minimum 75% for projections
 
     const timeframes = [
       { label: '1 Month', days: 22, icon: '🎯' },
@@ -97,50 +98,38 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     ];
 
     return timeframes.map(tf => {
-      // Start with current actual balances
       let available = currentState.available;
       let saved = currentState.saved;
       let totalProfitGenerated = 0;
       
-      // Track the daily profit growth due to compounding
-      let currentDailyProfit = dailyProfitBase;
-
       for (let day = 1; day <= tf.days; day++) {
-        // Calculate position size based on current available capital
-        const currentLotSize = available / 100 * 0.01;
+        // TODAY'S PROFIT = base profit * (current available / original available)
+        // If you had $200 profit with $1000 available, and now have $1100 available,
+        // you should make $200 * (1100/1000) = $220
+        const scalingFactor = available / originalAvailable;
+        const todaysExpectedProfit = dailyProfitBase * scalingFactor;
         
-        // Daily profit scales with position size AND maintains pips consistency
-        const pipsToProfit = currentDailyProfit / (currentState.available / 100 * 0.01); // Pips value from original profit
-        const scaledDailyProfit = pipsToProfit * currentLotSize;
-        
-        let dayProfit;
-        if (Math.random() < successRate) {
-          // Winning day
-          dayProfit = scaledDailyProfit;
+        // Apply win rate (some days are losses)
+        let actualProfit;
+        if (Math.random() < winRateDecimal) {
+          actualProfit = todaysExpectedProfit; // Winning day
         } else {
-          // Losing day - assume loss is 40% of typical win
-          dayProfit = -scaledDailyProfit * 0.4;
+          actualProfit = -todaysExpectedProfit * 0.3; // Losing day (30% of expected profit lost)
         }
         
-        // Apply the profit to available capital
-        available += dayProfit;
-        totalProfitGenerated += dayProfit;
+        // Add profit to available capital
+        available += actualProfit;
+        totalProfitGenerated += actualProfit;
         
-        // Apply compounding (EXACTLY like your app)
-        if (dayProfit > 0) {
-          const toSave = dayProfit * (compoundingPercent / 100);
-          available -= toSave;  // Remove the saved portion from available trading capital
-          saved += toSave;      // Add to savings
-          
-          // The KEY: Only the remaining profit (not saved) increases tomorrow's trading power
-          // If compoundingPercent = 50% and profit = $240:
-          // - $120 goes to savings (unavailable for trading)  
-          // - $120 stays in available capital (increases position size)
-          
-          // Update tomorrow's earning potential based on new available capital
-          const newLotSize = available / 100 * 0.01;
-          currentDailyProfit = pipsToProfit * newLotSize;
+        // Apply compounding: move portion to savings
+        if (actualProfit > 0) {
+          const toSave = actualProfit * (compoundingPercent / 100);
+          available -= toSave;
+          saved += toSave;
         }
+        
+        // Ensure available doesn't go below minimum
+        available = Math.max(available, originalAvailable * 0.1);
       }
 
       const totalValue = available + saved;
