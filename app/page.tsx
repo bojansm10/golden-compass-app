@@ -3,7 +3,8 @@
 import MotivationalQuote from './components/MotivationalQuote';
 import AccountHealthMonitor from './components/AccountHealthMonitor';
 import SupportTicketModal from './components/SupportTicketModal';
-import CompoundVision from './components/CompoundVision'; // NEW IMPORT
+import CompoundVision from './components/CompoundVision';
+import TradeHistory from './components/TradeHistory'; // NEW IMPORT FOR DELETE FUNCTIONALITY
 import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Plus, X, DollarSign, TrendingUp, AlertTriangle, Award, Clock, Activity, Users, Zap, Shield, Target, BarChart3, Sparkles, ChevronUp, ChevronDown, Brain, Flame, Settings, ArrowRight, Eye, EyeOff, Mail, Lock, User, LogOut } from 'lucide-react';
@@ -26,7 +27,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   const [showCompoundingEdit, setShowCompoundingEdit] = useState(false);
   const [showQuickSettings, setShowQuickSettings] = useState(false);
   const [showSupportTicket, setShowSupportTicket] = useState(false);
-  const [showCompoundVision, setShowCompoundVision] = useState(true); // NEW STATE FOR COMPOUND VISION
+  const [showCompoundVision, setShowCompoundVision] = useState(true);
   const [loading, setLoading] = useState(true);
   
   // Helper function to get user ID consistently
@@ -37,8 +38,8 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
   // Load user settings
   useEffect(() => {
     const loadSettings = async () => {
-      console.log('User object:', user); // Check what user object contains
-      console.log('User ID:', getUserId(user)); // Check the extracted user ID
+      console.log('User object:', user);
+      console.log('User ID:', getUserId(user));
       
       const userId = getUserId(user);
       if (!userId) {
@@ -124,7 +125,7 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
       .from('profiles')
       .update(valuesToSave)
       .eq('id', userId)
-      .select(); // Add .select() to see what was updated
+      .select();
     
     if (error) {
       console.error('Save error:', error);
@@ -693,6 +694,22 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           </div>
         </div>
         
+        {/* Risk Management Alert - Show when approaching daily limit */}
+        {todayPL < 0 && Math.abs(todayPL) > (dailyLimit * 0.7) && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+            <div className="flex items-center gap-3">
+              <AlertTriangle size={20} className="text-red-400" />
+              <div>
+                <h4 className="font-bold text-red-400">Risk Warning</h4>
+                <p className="text-sm text-gray-300">
+                  You've used {((Math.abs(todayPL) / dailyLimit) * 100).toFixed(1)}% of your daily risk limit. 
+                  Consider stopping for today or reducing position sizes.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Critical Market News */}
         <div className="mb-6 bg-gray-900/60 rounded-2xl p-3 md:p-4 border border-gray-800">
           <div className="flex items-center justify-between mb-3">
@@ -724,105 +741,87 @@ const TradingDashboard = ({ user, onLogout }: { user: any, onLogout: () => void 
           </div>
         </div>
         
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Recent Trades */}
-          <div className="lg:col-span-2 bg-gray-900/60 rounded-3xl border border-gray-800 p-4 md:p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <BarChart3 size={20} className="text-cyan-400" />
-                Trade Stream
-              </h2>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-400">LIVE</span>
+        {/* NEW: Trade History Section with Delete Functionality */}
+        <div className="mb-6">
+          <TradeHistory 
+            trades={trades}
+            setTrades={setTrades}
+            user={user}
+          />
+        </div>
+        
+        {/* Enhanced Performance Summary and Top Instructors */}
+        {trades.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Performance Summary */}
+            <div className="bg-gradient-to-br from-gray-900/80 to-black/80 border border-gray-700 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <TrendingUp size={20} className="text-green-400" />
+                Performance Summary
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Total P&L:</span>
+                  <span className={`font-bold ${totalPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Win Rate:</span>
+                  <span className="font-bold text-cyan-400">{stats.winRate.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Total Trades:</span>
+                  <span className="font-bold text-white">{stats.total}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Available Balance:</span>
+                  <span className="font-bold text-white">${available.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Saved Balance:</span>
+                  <span className="font-bold text-purple-400">${saved.toFixed(2)}</span>
+                </div>
               </div>
             </div>
-            
-            {trades.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-20 h-20 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
-                  <Activity size={32} className="text-gray-600" />
-                </div>
-                <p className="text-gray-500">No trades recorded yet</p>
-                <p className="text-sm text-gray-600 mt-2">Click "New Trade Entry" to start tracking</p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {trades.slice(-10).reverse().map((trade) => (
-                  <div key={trade.id} className="bg-black/40 rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-black/60 transition-all gap-2 sm:gap-0">
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <div className={`w-1 h-10 md:h-12 rounded-full ${trade.profit >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-white text-sm md:text-base">{trade.instrument}</p>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            trade.type === 'BUY' 
-                              ? 'bg-emerald-500/20 text-emerald-400' 
-                              : 'bg-red-500/20 text-red-400'
-                          }`}>
-                            {trade.type}
-                          </span>
-                          <span className="text-xs text-gray-500">{trade.lot_size} lot</span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {trade.instructor} • {new Date(trade.created_at).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right ml-auto sm:ml-0">
-                      <p className={`font-bold text-base md:text-lg ${trade.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {trade.profit >= 0 ? '+' : ''}${trade.profit.toFixed(2)}
-                      </p>
-                      {trade.pips > 0 && (
-                        <p className="text-xs text-gray-400">{trade.pips.toFixed(1)} pips</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* Instructor Performance */}
-          <div className="bg-gray-900/60 rounded-3xl border border-gray-800 p-4 md:p-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-6">
-              <Users size={20} className="text-purple-400" />
-              Instructor Analytics
-            </h2>
-            
-            {instructorStats.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">No instructor data yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {instructorStats.map((stat, index) => (
-                  <div key={stat.instructor} className="bg-black/40 rounded-2xl p-3 md:p-4 hover:bg-black/60 transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          index === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : 'bg-gray-700'
+
+            {/* Top Instructors */}
+            <div className="bg-gradient-to-br from-gray-900/80 to-black/80 border border-gray-700 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Award size={20} className="text-yellow-400" />
+                Top Instructors
+              </h3>
+              {instructorStats.length > 0 ? (
+                <div className="space-y-3">
+                  {instructorStats.slice(0, 3).map((instructor, idx) => (
+                    <div key={instructor.instructor} className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          idx === 0 ? 'bg-yellow-500/20 text-yellow-400' :
+                          idx === 1 ? 'bg-gray-500/20 text-gray-400' :
+                          'bg-orange-500/20 text-orange-400'
                         }`}>
-                          {index + 1}
-                        </div>
-                        <p className="font-medium text-white text-sm md:text-base">{stat.instructor}</p>
+                          {idx + 1}
+                        </span>
+                        <span className="text-white font-medium">{instructor.instructor}</span>
                       </div>
-                      <p className={`font-bold text-sm md:text-base ${stat.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {stat.profit >= 0 ? '+' : ''}${stat.profit.toFixed(2)}
-                      </p>
+                      <div className="text-right">
+                        <div className={`font-bold ${instructor.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {instructor.profit >= 0 ? '+' : ''}${instructor.profit.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {instructor.winRate}% win rate
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>{stat.trades} trades</span>
-                      <span>{stat.winRate}% win</span>
-                      {stat.pips > 0 && <span>{stat.pips.toFixed(1)} pips</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-4">No instructor data yet</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Footer */}
