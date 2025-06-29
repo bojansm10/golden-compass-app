@@ -85,9 +85,9 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       ];
     }
     
-    // Use THEIR actual daily profit
-    const dailyProfitBase = Math.abs(avgDailyProfit);
-    const originalAvailable = currentState.available;
+    // Calculate user's average daily pips from their actual performance
+    const currentLotSize = currentState.available / 100 * 0.01; // Current lot size based on available capital
+    const avgDailyPips = currentLotSize > 0 ? avgDailyProfit / currentLotSize : 80; // Fallback to 80 pips
     const winRateDecimal = Math.max(winRate / 100, 0.75); // Minimum 75% for projections
 
     const timeframes = [
@@ -103,33 +103,32 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       let totalProfitGenerated = 0;
       
       for (let day = 1; day <= tf.days; day++) {
-        // TODAY'S PROFIT = base profit * (current available / original available)
-        // If you had $200 profit with $1000 available, and now have $1100 available,
-        // you should make $200 * (1100/1000) = $220
-        const scalingFactor = available / originalAvailable;
-        const todaysExpectedProfit = dailyProfitBase * scalingFactor;
+        // Calculate lot size based on current available capital (like your spreadsheet)
+        const lotSize = available / 100 * 0.01; // 0.01 lot per $100 available
         
-        // Apply win rate (some days are losses)
-        let actualProfit;
+        // Calculate daily profit: same pips × current lot size (exactly like spreadsheet)
+        let dailyProfit;
         if (Math.random() < winRateDecimal) {
-          actualProfit = todaysExpectedProfit; // Winning day
+          // Winning day: user's avg pips × current lot size
+          dailyProfit = avgDailyPips * lotSize;
         } else {
-          actualProfit = -todaysExpectedProfit * 0.3; // Losing day (30% of expected profit lost)
+          // Losing day: negative pips
+          dailyProfit = -(avgDailyPips * 0.3) * lotSize; // 30% loss of avg pips
         }
         
-        // Add profit to available capital
-        available += actualProfit;
-        totalProfitGenerated += actualProfit;
+        // Add profit to available capital (like your spreadsheet: next day capital = prev + profit)
+        available += dailyProfit;
+        totalProfitGenerated += dailyProfit;
         
         // Apply compounding: move portion to savings
-        if (actualProfit > 0) {
-          const toSave = actualProfit * (compoundingPercent / 100);
+        if (dailyProfit > 0) {
+          const toSave = dailyProfit * (compoundingPercent / 100);
           available -= toSave;
           saved += toSave;
         }
         
         // Ensure available doesn't go below minimum
-        available = Math.max(available, originalAvailable * 0.1);
+        available = Math.max(available, currentState.available * 0.1);
       }
 
       const totalValue = available + saved;
@@ -387,8 +386,17 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-300">Your Daily Average:</span>
+                  <span className="text-gray-300">Your Avg Daily Pips:</span>
                   <span className="text-cyan-400 font-semibold">
+                    {currentState.avgDailyProfit && currentState.available > 0 ? 
+                      Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10 : 
+                      'Building baseline...'
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Your Daily Profit:</span>
+                  <span className="text-green-400 font-semibold">
                     ${currentState.avgDailyProfit ? currentState.avgDailyProfit.toFixed(2) : 'Building baseline...'}
                   </span>
                 </div>
@@ -417,31 +425,31 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
                 {currentState.tradingDays >= 5 ? (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Your settings in action:</span> With {compoundingPercent}% compounding, 
-                      you're keeping {100 - compoundingPercent}% of profits for larger positions while saving {compoundingPercent}% for wealth building.
+                      <span className="text-cyan-400 font-semibold">Your proven system:</span> Averaging {Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10} pips daily 
+                      with your current {((currentState.available / 100) * 0.01).toFixed(2)} lot size = ${currentState.avgDailyProfit?.toFixed(2)} daily profit.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-green-400 font-semibold">Growing position power:</span> From your $240 daily average, 
-                      ${(240 * (100 - compoundingPercent) / 100).toFixed(0)} reinvested daily grows your trading capital and position sizes exponentially.
+                      <span className="text-green-400 font-semibold">Compounding magic:</span> More capital = bigger lot size. 
+                      Same {Math.round((currentState.avgDailyProfit / (currentState.available / 100 * 0.01)) * 10) / 10} pips × bigger lots = exponentially growing profits.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-purple-400 font-semibold">Wealth building:</span> Meanwhile, ${(240 * compoundingPercent / 100).toFixed(0)} per day 
-                      (${(240 * compoundingPercent / 100 * 250).toFixed(0)} annually) builds your long-term wealth safely away from trading risk.
+                      <span className="text-purple-400 font-semibold">Your {compoundingPercent}% rule:</span> Each day's profit grows your trading power 
+                      while {compoundingPercent}% builds wealth safely outside of trading risk.
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Your compound setup:</span> With {compoundingPercent}% compounding rate, 
-                      you'll reinvest {100 - compoundingPercent}% of profits for bigger positions while saving {compoundingPercent}% for wealth building.
+                      <span className="text-cyan-400 font-semibold">Building your system:</span> Once you establish consistent pips performance, 
+                      the compounding effect scales your profits through larger position sizes.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-green-400 font-semibold">The power awaits:</span> Once you establish consistent daily profits, 
-                      compounding will accelerate your wealth through larger position sizes based on your {compoundingPercent}% setting.
+                      <span className="text-green-400 font-semibold">The formula:</span> Same daily pips × growing lot size (from more capital) = 
+                      exponential profit growth with your {compoundingPercent}% compounding rate.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-purple-400 font-semibold">Stay disciplined:</span> Every trade builds your performance data 
-                      and brings you closer to predictable wealth growth with your chosen {compoundingPercent}% compounding rate.
+                      <span className="text-purple-400 font-semibold">Stay disciplined:</span> Consistent pips are the key. The compounding 
+                      will handle the wealth building automatically as your capital grows.
                     </p>
                   </>
                 )}
