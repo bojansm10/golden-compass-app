@@ -75,10 +75,10 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
   const projections = useMemo(() => {
     const { avgDailyProfit, winRate } = currentState;
     
-    // Use conservative daily profit if no trading history
-    const projectedDailyProfit = avgDailyProfit || Math.max(currentState.dailyLimit * 0.3, 25);
-    const successRate = winRate / 100;
-    const adjustedDailyProfit = projectedDailyProfit * Math.max(successRate, 0.6); // Minimum 60% for projections
+    // Use much more conservative daily profit projections
+    const baseDailyProfit = avgDailyProfit || 50; // Default to $50/day if no history
+    const conservativeDailyProfit = Math.min(baseDailyProfit, currentState.dailyLimit * 0.5); // Cap at 50% of risk limit
+    const adjustedDailyProfit = conservativeDailyProfit * Math.max(winRate / 100, 0.7); // Minimum 70% for projections
 
     const timeframes = [
       { label: '1 Month', days: 22, icon: '🎯' },
@@ -88,34 +88,46 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     ];
 
     return timeframes.map(tf => {
-      // Simulate trading with app's exact compound logic
+      // Simulate realistic trading growth
       let available = currentState.available;
       let saved = currentState.saved;
       let totalProfitGenerated = 0;
 
-      for (let day = 1; day <= tf.days; day++) {
-        // Position sizing based on available capital (app's logic: 0.01 lot per $100)
-        const maxLotSize = available / 100 * 0.01;
-        const positionMultiplier = Math.max(maxLotSize / 0.1, 0.5); // Scale from base 0.1 lot
+      // More conservative approach: compound weekly instead of daily
+      const weeksInPeriod = Math.ceil(tf.days / 5);
+      const dailyProfitForWeek = adjustedDailyProfit * 5; // 5 trading days per week
+
+      for (let week = 1; week <= weeksInPeriod; week++) {
+        // Much more conservative position sizing
+        const currentLotSize = Math.min(available / 10000, 1.0); // 1 lot per $10k, max 1 lot
+        const positionMultiplier = Math.max(currentLotSize / 0.1, 0.5); // Scale from base 0.1 lot
         
-        // Daily profit scaled by position size
-        const dailyProfit = adjustedDailyProfit * positionMultiplier;
+        // Weekly profit with realistic scaling
+        const weeklyProfit = dailyProfitForWeek * Math.min(positionMultiplier, 3); // Cap multiplier at 3x
         
         // Apply the profit
-        available += dailyProfit;
-        totalProfitGenerated += dailyProfit;
+        available += weeklyProfit;
+        totalProfitGenerated += weeklyProfit;
         
-        // Compound logic (exactly like the app)
-        if (dailyProfit > 0) {
-          const toSave = dailyProfit * (compoundingPercent / 100);
+        // Apply compounding logic (save portion of profits)
+        if (weeklyProfit > 0) {
+          const toSave = weeklyProfit * (compoundingPercent / 100);
           available -= toSave;
           saved += toSave;
+        }
+
+        // Add realistic market volatility (some weeks are losses)
+        if (week % 8 === 0) { // Every 8th week has a small loss
+          const smallLoss = weeklyProfit * 0.2;
+          available -= smallLoss;
+          totalProfitGenerated -= smallLoss;
         }
       }
 
       const totalValue = available + saved;
-      const growth = totalValue - (currentState.available + currentState.saved);
-      const multiplier = totalValue / (currentState.available + currentState.saved);
+      const initialValue = currentState.available + currentState.saved;
+      const growth = totalValue - initialValue;
+      const multiplier = totalValue / initialValue;
 
       return {
         ...tf,
@@ -150,21 +162,26 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     let saved = currentState.saved;
     const { avgDailyProfit, winRate } = currentState;
     
-    const projectedDailyProfit = avgDailyProfit || Math.max(currentState.dailyLimit * 0.3, 25);
-    const adjustedDailyProfit = projectedDailyProfit * Math.max(winRate / 100, 0.6);
+    // Use same conservative calculations as projections
+    const baseDailyProfit = avgDailyProfit || 50;
+    const conservativeDailyProfit = Math.min(baseDailyProfit, currentState.dailyLimit * 0.5);
+    const adjustedDailyProfit = conservativeDailyProfit * Math.max(winRate / 100, 0.7);
 
     for (let month = 0; month <= 12; month++) {
       if (month > 0) {
-        const daysInMonth = 22; // Trading days
-        for (let i = 0; i < daysInMonth; i++) {
-          const maxLotSize = available / 100 * 0.01;
-          const positionMultiplier = Math.max(maxLotSize / 0.1, 0.5);
-          const dailyProfit = adjustedDailyProfit * positionMultiplier;
+        // Process one month at a time with realistic growth
+        const weeksInMonth = 4.33; // Average weeks per month
+        const weeklyProfit = adjustedDailyProfit * 5; // 5 trading days per week
+        
+        for (let week = 0; week < weeksInMonth; week++) {
+          const currentLotSize = Math.min(available / 10000, 1.0); // Conservative position sizing
+          const positionMultiplier = Math.max(currentLotSize / 0.1, 0.5);
+          const scaledWeeklyProfit = weeklyProfit * Math.min(positionMultiplier, 3);
           
-          available += dailyProfit;
+          available += scaledWeeklyProfit;
           
-          if (dailyProfit > 0) {
-            const toSave = dailyProfit * (compoundingPercent / 100);
+          if (scaledWeeklyProfit > 0) {
+            const toSave = scaledWeeklyProfit * (compoundingPercent / 100);
             available -= toSave;
             saved += toSave;
           }
@@ -172,7 +189,7 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       }
       
       const totalValue = available + saved;
-      const maxValue = projections[2]?.totalValue || totalValue * 2; // Use 1-year projection or estimate
+      const maxValue = Math.max(projections[2]?.totalValue || totalValue * 2, totalValue * 1.5);
       const heightPercent = Math.min((totalValue / maxValue) * 100, 100);
       
       points.push({
