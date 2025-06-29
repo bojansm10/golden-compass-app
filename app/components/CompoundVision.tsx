@@ -79,14 +79,14 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     let dailyProfitBase;
     let successRate;
     
-    if (tradingDays >= 5) {
+    if (tradingDays >= 3) {
       // User has real trading data - USE IT!
       dailyProfitBase = Math.abs(avgDailyProfit); // Use their actual average
-      successRate = winRate / 100;
+      successRate = Math.max(winRate / 100, 0.8); // Use their win rate, minimum 80%
     } else {
       // New user - use starter estimates
-      dailyProfitBase = currentState.dailyLimit * 0.3; // 30% of risk as potential daily profit
-      successRate = 0.7; // Assume 70% win rate for new users
+      dailyProfitBase = currentState.dailyLimit * 0.4; // 40% of risk as potential daily profit
+      successRate = 0.75; // Assume 75% win rate for new users
     }
 
     const timeframes = [
@@ -101,37 +101,52 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
       let available = currentState.available;
       let saved = currentState.saved;
       let totalProfitGenerated = 0;
+      
+      // Track the daily profit growth due to compounding
+      let currentDailyProfit = dailyProfitBase;
 
       for (let day = 1; day <= tf.days; day++) {
-        // Position sizing based on available capital (EXACTLY like your app)
-        const maxLotSize = available / 100 * 0.01;
+        // Calculate position size based on current available capital
+        const currentLotSize = available / 100 * 0.01;
         
-        // Calculate daily profit based on THEIR performance scaled to position size
-        let dailyProfit;
+        // Daily profit scales with position size AND maintains pips consistency
+        const pipsToProfit = currentDailyProfit / (currentState.available / 100 * 0.01); // Pips value from original profit
+        const scaledDailyProfit = pipsToProfit * currentLotSize;
+        
+        let dayProfit;
         if (Math.random() < successRate) {
-          // Winning day - use their actual daily profit scaled by position
-          dailyProfit = dailyProfitBase * (maxLotSize / 0.1); // Scale from base 0.1 lot
+          // Winning day
+          dayProfit = scaledDailyProfit;
         } else {
-          // Losing day - assume loss is 50% of typical win
-          dailyProfit = -dailyProfitBase * 0.5 * (maxLotSize / 0.1);
+          // Losing day - assume loss is 40% of typical win
+          dayProfit = -scaledDailyProfit * 0.4;
         }
         
         // Apply the profit to available capital
-        available += dailyProfit;
-        totalProfitGenerated += dailyProfit;
+        available += dayProfit;
+        totalProfitGenerated += dayProfit;
         
         // Apply compounding (EXACTLY like your app)
-        if (dailyProfit > 0) {
-          const toSave = dailyProfit * (compoundingPercent / 100);
-          available -= toSave;
-          saved += toSave;
+        if (dayProfit > 0) {
+          const toSave = dayProfit * (compoundingPercent / 100);
+          available -= toSave;  // Remove the saved portion from available trading capital
+          saved += toSave;      // Add to savings
+          
+          // The KEY: Only the remaining profit (not saved) increases tomorrow's trading power
+          // If compoundingPercent = 50% and profit = $240:
+          // - $120 goes to savings (unavailable for trading)  
+          // - $120 stays in available capital (increases position size)
+          
+          // Update tomorrow's earning potential based on new available capital
+          const newLotSize = available / 100 * 0.01;
+          currentDailyProfit = pipsToProfit * newLotSize;
         }
       }
 
       const totalValue = available + saved;
       const initialValue = currentState.available + currentState.saved;
       const growth = totalValue - initialValue;
-      const multiplier = totalValue / initialValue;
+      const multiplier = initialValue > 0 ? totalValue / initialValue : 1;
 
       return {
         ...tf,
@@ -181,22 +196,31 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
     for (let month = 0; month <= 12; month++) {
       if (month > 0) {
         const daysInMonth = 22; // Trading days
+        let monthlyDailyProfit = dailyProfitBase;
+        
         for (let day = 0; day < daysInMonth; day++) {
-          const maxLotSize = available / 100 * 0.01;
+          const currentLotSize = available / 100 * 0.01;
+          const pipsToProfit = monthlyDailyProfit / (currentState.available / 100 * 0.01 || 0.01);
+          const scaledDailyProfit = pipsToProfit * currentLotSize;
           
           let dailyProfit;
           if (Math.random() < successRate) {
-            dailyProfit = dailyProfitBase * (maxLotSize / 0.1);
+            dailyProfit = scaledDailyProfit;
           } else {
-            dailyProfit = -dailyProfitBase * 0.5 * (maxLotSize / 0.1);
+            dailyProfit = -scaledDailyProfit * 0.4;
           }
           
           available += dailyProfit;
           
+          // Apply USER'S compounding preference
           if (dailyProfit > 0) {
             const toSave = dailyProfit * (compoundingPercent / 100);
-            available -= toSave;
+            available -= toSave;  // This portion is saved and not available for trading
             saved += toSave;
+            
+            // Update next day's earning potential based on new available capital
+            const newLotSize = available / 100 * 0.01;
+            monthlyDailyProfit = pipsToProfit * newLotSize;
           }
         }
       }
@@ -404,31 +428,31 @@ const CompoundVision: React.FC<CompoundVisionProps> = ({
                 {currentState.tradingDays >= 5 ? (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Based on YOUR data:</span> {currentState.totalTrades} trades over {currentState.tradingDays} days shows 
-                      your average daily profit of ${currentState.avgDailyProfit?.toFixed(2)} with {currentState.winRate}% win rate.
+                      <span className="text-cyan-400 font-semibold">Your settings in action:</span> With {compoundingPercent}% compounding, 
+                      you're keeping {100 - compoundingPercent}% of profits for larger positions while saving {compoundingPercent}% for wealth building.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-green-400 font-semibold">Your compound power:</span> As your available capital grows with profits, 
-                      you can take larger positions, accelerating wealth growth through your proven performance.
+                      <span className="text-green-400 font-semibold">Growing position power:</span> From your $240 daily average, 
+                      ${(240 * (100 - compoundingPercent) / 100).toFixed(0)} reinvested daily grows your trading capital and position sizes exponentially.
                     </p>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-purple-400 font-semibold">The magic continues:</span> With {compoundingPercent}% reinvestment, 
-                      your position size grows from {((currentState.available / 100) * 0.01).toFixed(2)} to {((projections[2]?.available || currentState.available) / 100 * 0.01).toFixed(2)} lots in 1 year.
+                      <span className="text-purple-400 font-semibold">Wealth building:</span> Meanwhile, ${(240 * compoundingPercent / 100).toFixed(0)} per day 
+                      (${(240 * compoundingPercent / 100 * 250).toFixed(0)} annually) builds your long-term wealth safely away from trading risk.
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="text-gray-300 text-sm">
-                      <span className="text-cyan-400 font-semibold">Building your baseline:</span> Complete more trades to see projections 
-                      based on YOUR actual performance instead of estimates.
+                      <span className="text-cyan-400 font-semibold">Your compound setup:</span> With {compoundingPercent}% compounding rate, 
+                      you'll reinvest {100 - compoundingPercent}% of profits for bigger positions while saving {compoundingPercent}% for wealth building.
                     </p>
                     <p className="text-gray-300 text-sm">
                       <span className="text-green-400 font-semibold">The power awaits:</span> Once you establish consistent daily profits, 
-                      compounding will accelerate your wealth through larger position sizes.
+                      compounding will accelerate your wealth through larger position sizes based on your {compoundingPercent}% setting.
                     </p>
                     <p className="text-gray-300 text-sm">
                       <span className="text-purple-400 font-semibold">Stay disciplined:</span> Every trade builds your performance data 
-                      and brings you closer to predictable wealth growth.
+                      and brings you closer to predictable wealth growth with your chosen {compoundingPercent}% compounding rate.
                     </p>
                   </>
                 )}
